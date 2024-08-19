@@ -65,6 +65,9 @@ class Course(models.Model):
         ('closed', 'Closed'),
     ], default='open')
 
+    def __str__(self):
+        return self.code + ' - ' + self.name
+
 
 class Material(models.Model):
     id = models.BigAutoField(primary_key=True)

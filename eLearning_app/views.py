@@ -19,7 +19,7 @@ def register_student(request):
             user = form.save()
             messages.success(
                 request, "Registration successful! Please log in.")
-            return redirect('index')
+            return redirect('login')
     else:
         form = StudentRegistrationForm()
     return render(request, 'eLearning_app/register_student.html', {'form': form})
@@ -32,7 +32,7 @@ def register_teacher(request):
             user = form.save()
             messages.success(
                 request, "Registration successful! Please log in.")
-            return redirect('index')
+            return redirect('login')
 
     else:
         form = TeacherRegistrationForm()
@@ -79,7 +79,6 @@ def course_list(request):
     return render(request, 'eLearning_app/course_list.html', {'courses': courses})
 
 
-@permission_required('eLearning_app.view_course')
 def course_detail(request, course_id):
     course = get_object_or_404(Course, id=course_id)
     materials = Material.objects.filter(course=course)
@@ -134,14 +133,17 @@ def delete_course(request, course_id):
 
 
 # Student can view course to enroll
-@permission_required('eLearning_app.view_course')
 def enroll_in_course(request, course_id):
+    if not request.user.is_authenticated:
+        # Redirect to login page with 'next' parameter
+        return redirect(f'/login/?next=/course/{course_id}/enroll/')
     if not request.user.is_student:
         messages.error(request, "Only students can enroll in courses.")
         return redirect('profile')
 
     try:
         course = Course.objects.get(id=course_id, enrollment_status='open')
+        print("Object created: " + str(course))
     except Course.DoesNotExist:
         messages.error(request, "Course not found or enrollment is closed.")
         return redirect('course_list')
@@ -167,3 +169,4 @@ def close_enrollment(request, course_id):
         messages.success(request, "Enrollment closed for this course.")
         return redirect('course_detail', course_id=course.id)
     return render(request, 'eLearning_app/close_enrollment.html', {'course': course})
+
