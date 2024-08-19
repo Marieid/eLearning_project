@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>User Profile</h2>
+
+    <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+
+    {% if user.profile_picture %}
+        <img src="{{ user.profile_picture.url }}" alt="Profile Picture" width="200">
+    {% else %}
+        <p>No profile picture yet.</p> 
+    {% endif %}
+
+    <p>Username: {{ user.username }}</p>
+    <p>Email: {{ user.email }}</p>
+
+    {% if user.is_student %}
+        <h3>Enrolled Courses</h3>
+        <ul>
+            {% for course in user.student.enrolled_courses.all %}
+                <li><a href="{% url 'course_detail' course.id %}">{{ course.name }}</a></li>
+            {% endfor %}
+        </ul>
+
+        <h3>Feedback</h3>
+        <ul>
+            {% for feedback in user.student.feedback_set.all %}
+                <li>
+                    Course: {{ feedback.course.name }}<br>
+                    Rating: {{ feedback.rating }}<br>
+                    Comment: {{ feedback.comment }}
+                </li>
+            {% endfor %}
+        </ul>
+
+        <h3>Status Updates</h3>
+        <ul>
+            {% for status_update in user.statusupdate_set.all %}
+                <li>{{ status_update.content }} ({{ status_update.timestamp }})</li>
+            {% endfor %}
+        </ul>
+    {% elif user.is_teacher %}
+        <h3>Courses Taught</h3>
+        <ul>
+            {% for course in user.teacher.course_set.all %}
+                <li><a href="{% url 'course_detail' course.id %}">{{ course.name }}</a></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <h3>Chat Rooms</h3>
+    <ul>
+        {% for chat_room in user.chat_rooms.all %}
+            <li>{{ chat_room.name }}</li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

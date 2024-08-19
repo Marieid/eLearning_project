@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Close Enrollment for: {{ course.name }}</h2>
+    <p>Are you sure you want to close enrollment for this course? New students will not be able to enroll.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Close Enrollment</button>
+    </form>
+{% endblock %}
