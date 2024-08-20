@@ -13,18 +13,19 @@
 
     <p>Username: {{ user.username }}</p>
     <p>Email: {{ user.email }}</p>
+    <a href="{% url 'edit_profile' %}">Edit Profile</a>
 
-    {% if user.is_student %}
+    {% if user.elearnuser.user_type == 'student' %}
         <h3>Enrolled Courses</h3>
         <ul>
-            {% for course in user.student.enrolled_courses.all %}
+            {% for course in user.elearnuser.enrolled_courses.all %} 
                 <li><a href="{% url 'course_detail' course.id %}">{{ course.name }}</a></li>
             {% endfor %}
         </ul>
 
         <h3>Feedback</h3>
         <ul>
-            {% for feedback in user.student.feedback_set.all %}
+            {% for feedback in user.elearnuser.feedback_set.all %}
                 <li>
                     Course: {{ feedback.course.name }}<br>
                     Rating: {{ feedback.rating }}<br>
@@ -39,10 +40,10 @@
                 <li>{{ status_update.content }} ({{ status_update.timestamp }})</li>
             {% endfor %}
         </ul>
-    {% elif user.is_teacher %}
+    {% elif user.elearnuser.user_type == 'teacher' %}
         <h3>Courses Taught</h3>
         <ul>
-            {% for course in user.teacher.course_set.all %}
+            {% for course in courses_taught %}
                 <li><a href="{% url 'course_detail' course.id %}">{{ course.name }}</a></li>
             {% endfor %}
         </ul>

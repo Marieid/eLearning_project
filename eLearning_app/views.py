@@ -4,7 +4,7 @@ from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
 from .models import Course, Enrollment, Material
-from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm
+from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm,  UserProfileUpdateForm
 from django.contrib.auth.decorators import permission_required
 
 
@@ -45,27 +45,50 @@ class CustomLoginView(LoginView):
 
 @login_required
 def profile(request):
-    # Fetch user profile data and render the profile template
-    return render(request, 'eLearning_app/profile.html', {'user': request.user})
+    context = {'user': request.user}
+    if hasattr(request.user, 'elearnuser'):
+        if request.user.elearnuser.user_type == 'student':
+            enrolled_courses = request.user.elearnuser.enrolled_courses.all()
+            context['enrolled_courses'] = enrolled_courses
+
+        elif request.user.elearnuser.user_type == 'teacher':
+            courses_taught = Course.objects.filter(
+                teacher=request.user.elearnuser)
+            context['courses_taught'] = courses_taught
+
+    return render(request, 'eLearning_app/profile.html', context)
 
 
 @login_required
-# Teacher can add course
+def edit_profile(request):
+    if request.method == 'POST':
+        form = UserProfileUpdateForm(
+            request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('profile')
+   # Redirect back to the profile page
+    else:
+        form = UserProfileUpdateForm(instance=request.user)
+    return render(request, 'eLearning_app/edit_profile.html', {'form': form})
+
+
+@login_required
 def create_course(request):
-    if not request.user.is_teacher:
+    if not request.user.elearnUser.user_type == 'teacher':
         messages.error(request, "Only teachers can create courses.")
-        # Or redirect to a suitable page
+
         return redirect('index')
 
     if request.method == 'POST':
         form = CourseCreationForm(request.POST)
         if form.is_valid():
             course = form.save(commit=False)
-            # Associate the course with the current teacher
-            course.teacher = request.user.teacher
+            course.teacher = request.user.elearnUser  # Associate with elearnUser
             course.save()
             messages.success(request, "Course created successfully!")
-            # Redirect to the course detail page
+
             return redirect('course_detail', course_id=course.id)
     else:
         form = CourseCreationForm()
@@ -93,80 +116,52 @@ def course_detail(request, course_id):
 
 
 @login_required
-# Teacher can change course
 @permission_required('eLearning_app.change_course')
 def edit_course(request, course_id):
     course = get_object_or_404(Course, id=course_id)
-    if course.teacher != request.user.teacher:
+    if course.teacher != request.user.elearnUser:
         messages.error(request, "You are not authorized to edit this course.")
-        return redirect('course_detail', course_id=course.id)
 
-    if request.method == 'POST':
-        form = CourseCreationForm(request.POST, instance=course)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Course updated successfully!")
-            return redirect('course_detail',
-                            course_id=course.id)
-    else:
-        form = CourseCreationForm(instance=course)
-    return render(request, 'eLearning_app/edit_course.html', {'form': form, 'course': course})
+        return redirect('course_detail', course_id=course.id)
 
 
 @login_required
-# Teacher can delete course
 @permission_required('eLearning_app.delete_course')
 def delete_course(request, course_id):
-    course = get_object_or_404(Course,
-                               id=course_id)
-    if course.teacher != request.user.teacher:
+    course = get_object_or_404(Course, id=course_id)
+    if course.teacher != request.user.elearnUser:
         messages.error(
             request, "You are not authorized to delete this course.")
         return redirect('course_detail', course_id=course.id)
 
-    if request.method == 'POST':
-        course.delete()
-        messages.success(request, "Course deleted successfully!")
-        return redirect('course_list')
-    return render(request,
-                  'eLearning_app/delete_course.html', {'course': course})
 
-
-# Student can view course to enroll
+@permission_required('eLearning_app.view_course')
 def enroll_in_course(request, course_id):
     if not request.user.is_authenticated:
-        # Redirect to login page with 'next' parameter
+
         return redirect(f'/login/?next=/course/{course_id}/enroll/')
-    if not request.user.is_student:
+    if not request.user.elearnUser.user_type == 'student':
         messages.error(request, "Only students can enroll in courses.")
         return redirect('profile')
 
     try:
         course = Course.objects.get(id=course_id, enrollment_status='open')
-        print("Object created: " + str(course))
+
     except Course.DoesNotExist:
         messages.error(request, "Course not found or enrollment is closed.")
         return redirect('course_list')
 
-    Enrollment.objects.create(student=request.user.student, course=course)
+    # Use elearnUser for student
+    Enrollment.objects.create(student=request.user.elearnUser, course=course)
     messages.success(request, "Enrolled in course successfully!")
     return redirect('course_detail', course_id=course.id)
 
 
 @login_required
-# Teacher can change course (to close enrollment)
 @permission_required('eLearning_app.change_course')
 def close_enrollment(request, course_id):
     course = get_object_or_404(Course, id=course_id)
-    if course.teacher != request.user.teacher:
+    if course.teacher != request.user.elearnUser:
         messages.error(
             request, "You are not authorized to close enrollment for this course.")
         return redirect('course_detail', course_id=course.id)
-
-    if request.method == 'POST':
-        course.enrollment_status = 'closed'
-        course.save()
-        messages.success(request, "Enrollment closed for this course.")
-        return redirect('course_detail', course_id=course.id)
-    return render(request, 'eLearning_app/close_enrollment.html', {'course': course})
-

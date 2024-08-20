@@ -19,4 +19,5 @@ urlpatterns = [
          views.enroll_in_course, name='enroll_in_course'),
     path('course/<int:course_id>/', views.course_detail, name='course_detail'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('profile/edit/', views.edit_profile, name='edit_profile'),
 ]
