@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Reopen Enrollment for: {{ course.name }}</h2>
+    <p>Are you sure you want to reopen enrollment for this course?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Reopen Enrollment</button>
+    </form>
+{% endblock %}

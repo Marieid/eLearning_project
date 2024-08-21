@@ -6,7 +6,7 @@
         {% for course in courses %}
             <li>
                 <a href="{% url 'course_detail' course.id %}">{{ course.name }}</a>
-                {% if user.is_student %}
+                {% if user.is_authenticated and user.elearnuser.user_type == 'student' and course not in enrolled_courses %} 
                     <a href="{% url 'enroll_in_course' course.id %}">Enroll</a>
                 {% endif %}
             </li>

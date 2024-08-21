@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Group, Permission
 from .models import User, Course, elearnUser
 
 
@@ -31,6 +31,9 @@ class StudentRegistrationForm(UserCreationForm):
         if commit:
             user.save()
             elearnUser.objects.create(user=user, user_type='student')
+            # Add the user to the 'students' group
+            students_group = Group.objects.get(name='Students')
+            user.groups.add(students_group)
         return user
 
 
@@ -59,7 +62,15 @@ class TeacherRegistrationForm(UserCreationForm):
         user = super().save(commit=False)
         if commit:
             user.save()
-            elearnUser.objects.create(user=user, user_type='teacher')
+            elearn_user = elearnUser.objects.create(
+                user=user, user_type='teacher')
+            # Add the user to the 'teachers' group
+            try:
+                teachers_group = Group.objects.get(name='Teachers')
+                user.groups.add(teachers_group)
+            except:
+                messages.error(request, 'New user ' +
+                               elearn_user.name + ' was not added to a group')
         return user
 
 
@@ -82,6 +93,7 @@ class UserProfileUpdateForm(forms.ModelForm):
                     "Image file too large (maximum 1MB).")
 
         return profile_picture
+
 
 class CourseCreationForm(forms.ModelForm):
     class Meta:

@@ -6,7 +6,7 @@ from django.db.models import Q
 class User(AbstractUser):
     id = models.BigAutoField(primary_key=True)
     profile_picture = models.ImageField(
-        upload_to='media/profile_pics', blank=True, null=True)
+        upload_to='profile_pics', blank=True, null=True)
     first_name = models.CharField(max_length=256, null=False, blank=False)
     last_name = models.CharField(max_length=256, null=False, blank=False)
     email = models.EmailField(max_length=256,
