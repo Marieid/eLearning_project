@@ -16,7 +16,7 @@
 {% if user.elearnuser.user_type == 'student' %}
 <h3>Enrolled Courses</h3>
 <ul>
-  {% for course in user.elearnuser.enrolled_courses.all %}
+  {% for course in enrolled_courses %}
   <li><a href="{% url 'course_detail' course.id %}">{{ course.name }}</a></li>
   {% endfor %}
 </ul>

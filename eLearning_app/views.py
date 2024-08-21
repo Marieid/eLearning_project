@@ -104,6 +104,7 @@ def course_list(request):
 
     if request.user.is_authenticated and hasattr(request.user, 'elearnuser') and request.user.elearnuser.user_type == 'student':
         enrolled_courses = request.user.elearnuser.enrolled_courses.all()
+        print('course list, enrolled students: ' + str(enrolled_courses))
     else:
         enrolled_courses = []
 
@@ -114,12 +115,14 @@ def course_detail(request, course_id):
     course = get_object_or_404(Course, id=course_id)
     materials = Material.objects.filter(course=course)
 
-    if request.method == 'POST' and 'enroll' in request.POST:  # Check if enrollment just happened
+    # Check if enrollment just happened
+    if request.method == 'POST' and 'enroll' in request.POST:
         # Call enroll_in_course view to handle enrollment
         enroll_in_course(request, course_id)
 
     # Re-fetch enrolled students
     enrolled_students = course.students.all()
+    print('enrolled students: ' + str(enrolled_students))
 
     context = {
         'course': course,
@@ -161,12 +164,10 @@ def delete_course(request, course_id):
 @ permission_required('eLearning_app.view_course')
 def enroll_in_course(request, course_id):
     if not request.user.is_authenticated:
-
         return redirect(f'/login/?next=/course/{course_id}/enroll/')
     if not request.user.elearnuser.user_type == 'student':
         messages.error(request, "Only students can enroll in courses.")
         return redirect('profile')
-
     try:
         course = Course.objects.get(id=course_id, enrollment_status='open')
 
@@ -175,6 +176,8 @@ def enroll_in_course(request, course_id):
         return redirect('course_list')
 
     # Use elearnUser for student
+    print('user: ' + str(request.user.elearnuser))
+    print('course: ' + str(course))
     Enrollment.objects.create(student=request.user.elearnuser, course=course)
     messages.success(request, "Enrolled in course successfully!")
     return redirect('course_detail', course_id=course.id)
