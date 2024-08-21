@@ -6,6 +6,7 @@ from django.shortcuts import render, get_object_or_404
 from .models import Course, Enrollment, Material
 from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm,  UserProfileUpdateForm
 from django.contrib.auth.decorators import permission_required
+from django.db import transaction
 
 
 def index(request):
@@ -178,7 +179,16 @@ def enroll_in_course(request, course_id):
     # Use elearnUser for student
     print('user: ' + str(request.user.elearnuser))
     print('course: ' + str(course))
-    Enrollment.objects.create(student=request.user.elearnuser, course=course)
+
+    enrollment = Enrollment.objects.create(
+        student=request.user.elearnuser, course=course)
+
+    def update_course_students():
+        # Refresh the course's students ManyToManyField
+        course.students.add(request.user.elearnuser)
+
+     # Execute after the transaction is committed
+    transaction.on_commit(update_course_students)
     messages.success(request, "Enrolled in course successfully!")
     return redirect('course_detail', course_id=course.id)
 
