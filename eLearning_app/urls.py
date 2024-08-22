@@ -28,4 +28,6 @@ urlpatterns = [
          views.delete_material, name='delete_material'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
+    path('course/<int:course_id>/submit_feedback/',
+         views.submit_feedback, name='submit_feedback'),
 ]

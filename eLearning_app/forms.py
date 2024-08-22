@@ -1,7 +1,8 @@
+from .models import Feedback
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group, Permission
-from .models import User, Course, elearnUser, Material
+from .models import User, Course, elearnUser, Material, Feedback
 
 
 class StudentRegistrationForm(UserCreationForm):
@@ -113,3 +114,13 @@ class MaterialForm(forms.ModelForm):
         model = Material
         fields = ['file', 'name', 'description', 'uploader']
         widgets = {'uploader': forms.HiddenInput()}
+
+
+class FeedbackForm(forms.ModelForm):
+    class Meta:
+        model = Feedback
+        fields = ['rating', 'comment']
+
+    # You can customize field widgets or add more validation here if needed
+    # For example, to make the rating field a dropdown:
+    rating = forms.ChoiceField(choices=[(i, i) for i in range(1, 6)])  # 1 to 5 rating scale

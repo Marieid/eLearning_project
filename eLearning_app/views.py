@@ -4,7 +4,7 @@ from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
 from .models import Course, Enrollment, Material
-from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm,  UserProfileUpdateForm, MaterialForm
+from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm, UserProfileUpdateForm, MaterialForm, FeedbackForm
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
 from django.db.models import Q
@@ -138,6 +138,7 @@ def course_detail(request, course_id):
         'course': course,
         'materials': materials,
         'enrolled_students': enrolled_students,
+        'feedback_form': FeedbackForm(),
     }
     return render(request, 'eLearning_app/course_detail.html', context)
 
@@ -287,3 +288,30 @@ def delete_material(request, course_id, material_id):
         return redirect('course_detail', course_id=course_id)
 
     return render(request, 'eLearning_app/delete_material.html', {'material': material})
+
+
+@login_required
+# Student can add feedback
+@permission_required('eLearning_app.add_feedback')
+def submit_feedback(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+
+    if not request.user.elearnuser.user_type == 'student':
+        messages.error(request, "Only students can submit feedback.")
+        return redirect('course_detail', course_id=course_id)
+
+    if request.method == 'POST':
+        form = FeedbackForm(request.POST)
+        if form.is_valid():
+            feedback = form.save(commit=False)
+            feedback.student = request.user.elearnuser
+
+            feedback.course = course
+            feedback.save()
+            messages.success(request, 'Feedback submitted successfully!')
+            # Redirect back to the course detail page
+            return redirect('course_detail', course_id=course_id)
+    else:
+        form = FeedbackForm()
+
+    return render(request, 'eLearning_app/submit_feedback.html', {'form': form, 'course': course})

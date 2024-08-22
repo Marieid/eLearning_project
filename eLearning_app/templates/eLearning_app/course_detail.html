@@ -4,6 +4,17 @@
     <h2>{{ course.name }}</h2>
     <p>{{ course.description }}</p>
 
+    <ul>
+    {% if user.is_authenticated and user.elearnuser.user_type == 'student' and user.elearnuser in enrolled_students %}
+        <h3>Submit Feedback</h3>
+        <form method="post" action="{% url 'submit_feedback' course.id %}"> 
+            {% csrf_token %}
+            {{ feedback_form.as_p }}
+            <button type="submit">Submit Feedback</button>
+        </form>
+    {% endif %}
+    </ul>
+
     {% if user.is_authenticated and user.elearnuser.user_type == 'teacher' and course.teacher == user.elearnuser %}
         <a href="{% url 'edit_course' course.id %}">Edit Course</a> | 
         <a href="{% url 'delete_course' course.id %}" onclick="return confirm('Are you sure you want to delete this course?')">Delete Course</a> | 
@@ -34,6 +45,16 @@
     <ul>
         {% for student in enrolled_students %}
             <li>{{ student.user.first_name }} {{ student.user.last_name }}</li> 
+        {% endfor %}
+    </ul>
+    <h3>Feedback for this Course</h3>
+    <ul>
+        {% for feedback in course.feedback_set.all %}
+            <li>
+                Student: {{ feedback.student.user.username }}<br>
+                Rating: {{ feedback.rating }}<br>
+                Comment: {{ feedback.comment }}
+            </li>
         {% endfor %}
     </ul>
 
