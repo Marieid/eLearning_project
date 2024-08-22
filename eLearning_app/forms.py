@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group, Permission
-from .models import User, Course, elearnUser
+from .models import User, Course, elearnUser, Material
 
 
 class StudentRegistrationForm(UserCreationForm):
@@ -69,8 +69,8 @@ class TeacherRegistrationForm(UserCreationForm):
                 teachers_group = Group.objects.get(name='Teachers')
                 user.groups.add(teachers_group)
             except:
-                messages.error(request, 'New user ' +
-                               elearn_user.name + ' was not added to a group')
+                message.error(request, 'New user ' +
+                              elearn_user.name + ' was not added to a group')
         return user
 
 
@@ -106,3 +106,10 @@ class CourseCreationForm(forms.ModelForm):
         widget=forms.DateInput(attrs={'placeholder': 'yyyy-mm-dd'}))
     enrollment_status = forms.ChoiceField(
         choices=Course._meta.get_field('enrollment_status').choices)
+
+
+class MaterialForm(forms.ModelForm):
+    class Meta:
+        model = Material
+        fields = ['file', 'name', 'description', 'uploader']
+        widgets = {'uploader': forms.HiddenInput()}

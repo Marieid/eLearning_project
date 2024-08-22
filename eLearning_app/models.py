@@ -70,8 +70,11 @@ class Material(models.Model):
     id = models.BigAutoField(primary_key=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     file = models.FileField(upload_to='course_materials/')
+    uploader = models.ForeignKey(elearnUser, on_delete=models.CASCADE)
     upload_date = models.DateTimeField(auto_now_add=True)
     file_type = models.CharField(max_length=50, blank=True)
+    name = models.CharField(max_length=255, default="Untitled Material")
+    description = models.TextField(blank=True)
 
 
 class Feedback(models.Model):

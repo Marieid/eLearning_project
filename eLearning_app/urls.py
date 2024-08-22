@@ -20,6 +20,12 @@ urlpatterns = [
     path('course/<int:course_id>/enroll/',
          views.enroll_in_course, name='enroll_in_course'),
     path('course/<int:course_id>/', views.course_detail, name='course_detail'),
+    path('course/<int:course_id>/add_material/',
+         views.add_material, name='add_material'),
+    path('course/<int:course_id>/edit_material/<int:material_id>/',
+         views.edit_material, name='edit_material'),
+    path('course/<int:course_id>/delete_material/<int:material_id>/',
+         views.delete_material, name='delete_material'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('profile/edit/', views.edit_profile, name='edit_profile'),
 ]

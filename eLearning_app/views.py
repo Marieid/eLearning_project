@@ -4,9 +4,10 @@ from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
 from .models import Course, Enrollment, Material
-from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm,  UserProfileUpdateForm
+from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm,  UserProfileUpdateForm, MaterialForm
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
+from django.db.models import Q
 
 
 def index(request):
@@ -114,14 +115,22 @@ def course_list(request):
 
 def course_detail(request, course_id):
     course = get_object_or_404(Course, id=course_id)
-    materials = Material.objects.filter(course=course)
-
+    if hasattr(request.user, 'elearnuser'):
+        if request.user.elearnuser.user_type == 'teacher':
+            materials = Material.objects.filter(course=course)
+        else:  # Student
+            materials = Material.objects.filter(Q(course=course, uploader=course.teacher) | Q(
+                course=course, uploader=request.user.elearnuser))
+    else:  # User has no elearnuser object
+        # Only show teacher-uploaded materials
+        materials = Material.objects.filter(
+            course=course, uploader=course.teacher)
     # Check if enrollment just happened
     if request.method == 'POST' and 'enroll' in request.POST:
         # Call enroll_in_course view to handle enrollment
         enroll_in_course(request, course_id)
 
-    # Re-fetch enrolled students
+    # Fetch enrolled students and add to context
     enrolled_students = course.students.all()
     print('enrolled students: ' + str(enrolled_students))
 
@@ -226,3 +235,55 @@ def open_enrollment(request, course_id):
         messages.success(request, "Enrollment reopened for this course.")
         return redirect('course_detail', course_id=course.id)
     return render(request, 'eLearning_app/open_enrollment.html', {'course': course})
+
+
+@login_required
+@permission_required('eLearning_app.add_material')
+def add_material(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    if request.method == 'POST':
+        form = MaterialForm(request.POST, request.FILES)
+        if form.is_valid():
+            material = form.save(commit=False)
+            material.course = course
+            material.uploader = request.user.elearnuser
+            print('Uploader: ' + str(material.uploader))
+            material.save()
+            messages.success(request, 'Material added successfully!')
+            return redirect('course_detail', course_id=course_id)
+    else:
+        form = MaterialForm(initial={'uploader': request.user.elearnuser})
+
+    return render(request, 'eLearning_app/add_material.html', {'form': form, 'course': course})
+
+
+@login_required
+@permission_required('eLearning_app.change_material')
+def edit_material(request, course_id, material_id):
+    material = get_object_or_404(Material, id=material_id, course_id=course_id)
+
+    if request.method == 'POST':
+        form = MaterialForm(request.POST, request.FILES,
+                            instance=material)
+        if form.is_valid():
+            material.uploader = request.user.elearnuser
+            form.save()
+            messages.success(request, 'Material updated successfully!')
+            return redirect('course_detail', course_id=course_id)
+    else:
+        form = MaterialForm(instance=material)
+
+    return render(request, 'eLearning_app/edit_material.html', {'form': form, 'course': material.course})
+
+
+@login_required
+@permission_required('eLearning_app.delete_material')
+def delete_material(request, course_id, material_id):
+    material = get_object_or_404(Material, id=material_id, course_id=course_id)
+
+    if request.method == 'POST':
+        material.delete()
+        messages.success(request, 'Material deleted successfully!')
+        return redirect('course_detail', course_id=course_id)
+
+    return render(request, 'eLearning_app/delete_material.html', {'material': material})
