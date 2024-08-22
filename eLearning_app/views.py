@@ -4,10 +4,12 @@ from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
 from .models import Course, Enrollment, Material
-from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm, UserProfileUpdateForm, MaterialForm, FeedbackForm
+from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm, UserProfileUpdateForm, MaterialForm, FeedbackForm, StatusUpdateForm
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
 from django.db.models import Q
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 
 def index(request):
@@ -59,6 +61,7 @@ def profile(request):
                 teacher=request.user.elearnuser)
             context['courses_taught'] = courses_taught
 
+    context['status_update_form'] = StatusUpdateForm()
     return render(request, 'eLearning_app/profile.html', context)
 
 
@@ -315,3 +318,27 @@ def submit_feedback(request, course_id):
         form = FeedbackForm()
 
     return render(request, 'eLearning_app/submit_feedback.html', {'form': form, 'course': course})
+
+
+@login_required
+def post_status_update(request):
+    # Handle AJAX POST requests
+    if request.method == 'POST' and request.is_ajax():  
+        print(request.POST)
+        form = StatusUpdateForm(request.POST)
+        print(form.is_valid())
+        if form.is_valid():
+            status_update = form.save(commit=False)
+            status_update.user = request.user
+            print(status_update)
+            status_update.save()
+            print(status_update)
+            # Render the new status update to HTML
+            new_status_update_html = render_to_string(
+                'eLearning_app/status_update.html', {'status_update': status_update})
+            print(new_status_update_html)
+            return JsonResponse({'success': True, 'new_status_update_html': new_status_update_html})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+    else:
+        return JsonResponse({'success': False, 'message': 'Invalid request'})

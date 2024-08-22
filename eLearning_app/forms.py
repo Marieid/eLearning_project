@@ -2,7 +2,7 @@ from .models import Feedback
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group, Permission
-from .models import User, Course, elearnUser, Material, Feedback
+from .models import User, Course, elearnUser, Material, Feedback, StatusUpdate
 
 
 class StudentRegistrationForm(UserCreationForm):
@@ -123,4 +123,11 @@ class FeedbackForm(forms.ModelForm):
 
     # You can customize field widgets or add more validation here if needed
     # For example, to make the rating field a dropdown:
-    rating = forms.ChoiceField(choices=[(i, i) for i in range(1, 6)])  # 1 to 5 rating scale
+    rating = forms.ChoiceField(
+        choices=[(i, i) for i in range(1, 6)])  # 1 to 5 rating scale
+
+
+class StatusUpdateForm(forms.ModelForm):
+    class Meta:
+        model = StatusUpdate
+        fields = ['content']

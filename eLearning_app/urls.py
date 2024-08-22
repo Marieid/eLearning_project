@@ -30,4 +30,7 @@ urlpatterns = [
     path('profile/edit/', views.edit_profile, name='edit_profile'),
     path('course/<int:course_id>/submit_feedback/',
          views.submit_feedback, name='submit_feedback'),
+    path('post_status_update/', views.post_status_update,
+         name='post_status_update'),
+
 ]
