@@ -93,16 +93,6 @@ class StatusUpdate(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     content = models.TextField()
 
-
-class ChatRoom(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    chat_name = models.CharField(max_length=256, unique=True)
-    # Can be either teacher or student
-    admin = models.ForeignKey(User, on_delete=models.CASCADE)
-    members = models.ManyToManyField(User, related_name='chat_rooms')
-    chat_log = models.TextField(blank=True)
-
-
 class Enrollment(models.Model):
     id = models.BigAutoField(primary_key=True)
     student = models.ForeignKey(
@@ -126,3 +116,22 @@ class MaterialNotification(models.Model):
     student = models.ForeignKey(
         elearnUser, on_delete=models.CASCADE, limit_choices_to=Q(user_type='student'))
     read = models.BooleanField(default=False)
+
+
+class ChatRoom(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    chat_name = models.CharField(max_length=256, unique=True)
+    admin = models.ForeignKey(User, on_delete=models.CASCADE)
+    members = models.ManyToManyField(User, related_name='chat_rooms')
+
+    def __str__(self):
+        return self.chat_name
+
+class Message(models.Model):
+    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.user.username}: {self.content[:20]}'

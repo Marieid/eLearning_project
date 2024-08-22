@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'eLearning_app'
+    'rest_framework',
+    'eLearning_app',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -73,8 +75,17 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'eLearning_project.wsgi.application'
+# Use ASGI instead of WSGI
+ASGI_APPLICATION = 'eLearning_project.asgi.application'
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases

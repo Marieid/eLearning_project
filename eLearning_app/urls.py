@@ -32,5 +32,10 @@ urlpatterns = [
          views.submit_feedback, name='submit_feedback'),
     path('post_status_update/', views.post_status_update,
          name='post_status_update'),
-
+    path('status_update/<int:status_update_id>/edit/',
+         views.edit_status_update, name='edit_status_update'),
+    path('status_update/<int:status_update_id>/delete/',
+         views.delete_status_update, name='delete_status_update'),
+    path('chat-rooms/', views.chat_rooms, name='chat_rooms'),
+    path('chat/<str:room_name>/', views.chat_room_detail, name='chat_room_detail'),
 ]

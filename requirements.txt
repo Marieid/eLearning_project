@@ -1,3 +1,7 @@
-django
-django djangorestframework channels
+django 
+djangorestframework 
+channels
 Pillow
+channels_redis
+# brew
+redis 

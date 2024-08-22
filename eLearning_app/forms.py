@@ -2,7 +2,7 @@ from .models import Feedback
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group, Permission
-from .models import User, Course, elearnUser, Material, Feedback, StatusUpdate
+from .models import User, Course, elearnUser, Material, Feedback, StatusUpdate, ChatRoom
 
 
 class StudentRegistrationForm(UserCreationForm):
@@ -131,3 +131,9 @@ class StatusUpdateForm(forms.ModelForm):
     class Meta:
         model = StatusUpdate
         fields = ['content']
+
+
+class ChatRoomForm(forms.ModelForm):
+    class Meta:
+        model = ChatRoom
+        fields = ['chat_name']

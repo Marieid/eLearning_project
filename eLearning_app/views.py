@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
-from .models import Course, Enrollment, Material
-from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm, UserProfileUpdateForm, MaterialForm, FeedbackForm, StatusUpdateForm
+from .models import Course, Enrollment, Material, StatusUpdate, ChatRoom, Message
+from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm, UserProfileUpdateForm, MaterialForm, FeedbackForm, StatusUpdateForm, ChatRoomForm
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
 from django.db.models import Q
@@ -60,7 +60,16 @@ def profile(request):
             courses_taught = Course.objects.filter(
                 teacher=request.user.elearnuser)
             context['courses_taught'] = courses_taught
+    if hasattr(request.user, 'elearnuser'):
+        if request.user.elearnuser.user_type == 'student':
+            enrolled_courses = request.user.elearnuser.enrolled_courses.all()
+            context['enrolled_courses'] = enrolled_courses
+        elif request.user.elearnuser.user_type == 'teacher':
+            courses_taught = Course.objects.filter(
+                teacher=request.user.elearnuser)
+            context['courses_taught'] = courses_taught
 
+    context['chat_rooms'] = ChatRoom.objects.filter(members=request.user)
     context['status_update_form'] = StatusUpdateForm()
     return render(request, 'eLearning_app/profile.html', context)
 
@@ -322,23 +331,97 @@ def submit_feedback(request, course_id):
 
 @login_required
 def post_status_update(request):
-    # Handle AJAX POST requests
-    if request.method == 'POST' and request.is_ajax():  
-        print(request.POST)
+    if request.method == 'POST':
+        print("POST request received")  # Check if POST data is received
         form = StatusUpdateForm(request.POST)
-        print(form.is_valid())
         if form.is_valid():
             status_update = form.save(commit=False)
             status_update.user = request.user
-            print(status_update)
             status_update.save()
-            print(status_update)
-            # Render the new status update to HTML
-            new_status_update_html = render_to_string(
-                'eLearning_app/status_update.html', {'status_update': status_update})
-            print(new_status_update_html)
-            return JsonResponse({'success': True, 'new_status_update_html': new_status_update_html})
+
+            rendered_status_update = render_to_string(
+                'eLearning_app/status_update.html',
+                {'status_update': status_update}
+            )
+
+            return JsonResponse({'html': rendered_status_update}, status=200)
         else:
-            return JsonResponse({'success': False, 'errors': form.errors})
+            # Debug invalid form
+            print("Form is invalid")
+            return JsonResponse({'error': 'Invalid form data'}, status=400)
+            # Debug non-POST requests
+    print("Invalid request method")
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@login_required
+def edit_status_update(request, status_update_id):
+    status_update = get_object_or_404(StatusUpdate, id=status_update_id)
+
+    if status_update.user != request.user:
+        messages.error(
+            request, "You are not authorized to edit this status update.")
+        return redirect('profile')
+
+    if request.method == 'POST':
+        form = StatusUpdateForm(request.POST, instance=status_update)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Status update edited successfully!')
+            return redirect('profile')
     else:
-        return JsonResponse({'success': False, 'message': 'Invalid request'})
+        form = StatusUpdateForm(instance=status_update)
+
+    return render(request, 'eLearning_app/edit_status_update.html', {'form': form, 'status_update': status_update})
+
+
+@login_required
+def delete_status_update(request, status_update_id):
+    status_update = get_object_or_404(StatusUpdate, id=status_update_id)
+
+    if status_update.user != request.user:
+        messages.error(
+            request, "You are not authorized to delete this status update.")
+        return redirect('profile')
+
+    if request.method == 'POST':
+        status_update.delete()
+        messages.success(request, 'Status update deleted successfully!')
+        return redirect('profile')
+
+    return render(request, 'eLearning_app/delete_status_update.html', {'status_update': status_update})
+
+
+def chat_room_detail(request, room_name):
+    chat_room = get_object_or_404(ChatRoom, chat_name=room_name)
+    messages = Message.objects.filter(
+        chat_room=chat_room).order_by('timestamp')
+    return render(request, 'eLearning_app/chat_room_detail.html', {
+        'room_name': room_name,
+        'messages': messages,
+        'chat_room': chat_room
+    })
+
+
+@login_required
+def chat_rooms(request):
+    if request.method == 'POST':
+        form = ChatRoomForm(request.POST)
+        if form.is_valid():
+            chat_room = form.save(commit=False)
+            # Set the admin to the current user
+            chat_room.admin = request.user
+            chat_room.save()
+            # Add the current user as a member
+            chat_room.members.add(request.user)
+            return redirect('chat_room_detail', room_name=chat_room.chat_name)
+        else:
+            print(form.errors)
+    else:
+        form = ChatRoomForm()
+
+    chat_rooms = request.user.chat_rooms.all()
+    return render(request, 'eLearning_app/chat_rooms.html', {
+        'chat_rooms': chat_rooms,
+        'form': form
+    })
