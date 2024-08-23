@@ -2,6 +2,7 @@ import factory
 from factory.django import DjangoModelFactory
 from .models import User, elearnUser, Course, Material, Feedback, StatusUpdate, ChatRoom, Message, Enrollment, EnrollmentNotification, MaterialNotification
 from django.contrib.auth.models import Group
+from django.db.models.signals import post_save
 
 
 class UserFactory(DjangoModelFactory):
@@ -87,7 +88,7 @@ class EnrollmentFactory(DjangoModelFactory):
     class Meta:
         model = Enrollment
 
-    student = factory.SubFactory(elearnUserFactory, user_type='student')
+    student = factory.SubFactory(ElearnUserFactory, user_type='student')
     course = factory.SubFactory(CourseFactory)
 
 
@@ -98,8 +99,8 @@ class EnrollmentNotificationFactory(DjangoModelFactory):
         model = EnrollmentNotification
 
     course = factory.SubFactory(CourseFactory)
-    student = factory.SubFactory(elearnUserFactory, user_type='student')
-    teacher = factory.SubFactory(elearnUserFactory, user_type='teacher')
+    student = factory.SubFactory(ElearnUserFactory, user_type='student')
+    teacher = factory.SubFactory(ElearnUserFactory, user_type='teacher')
 
 
 @factory.django.mute_signals(post_save)
@@ -108,4 +109,4 @@ class MaterialNotificationFactory(DjangoModelFactory):
         model = MaterialNotification
 
     material = factory.SubFactory(MaterialFactory)
-    student = factory.SubFactory(elearnUserFactory, user_type='student')
+    student = factory.SubFactory(ElearnUserFactory, user_type='student')

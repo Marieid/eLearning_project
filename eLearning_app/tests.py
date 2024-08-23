@@ -2,7 +2,21 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import Group, Permission
 from .models import User, elearnUser, Course, Material, Enrollment, Feedback, StatusUpdate
-from .factories import *
+from .forms import ChatRoomForm, CourseCreationForm, FeedbackForm, MaterialForm, StatusUpdateForm, StudentRegistrationForm
+from django.core.files.uploadedfile import SimpleUploadedFile
+from .factories import (
+    UserFactory,
+    ElearnUserFactory,
+    CourseFactory,
+    MaterialFactory,
+    FeedbackFactory,
+    StatusUpdateFactory,
+    ChatRoomFactory,
+    MessageFactory,
+    EnrollmentFactory,
+    EnrollmentNotificationFactory,
+    MaterialNotificationFactory,
+)
 
 
 class ElearningAppTestCase(TestCase):
@@ -21,10 +35,10 @@ class ElearningAppTestCase(TestCase):
         self.teacher_user = UserFactory()
 
         # Create elearnUser objects and assign to groups
-        self.student = elearnUserFactory(
+        self.student = ElearnUserFactory(
             user=self.student_user, user_type='student')
         self.student_user.groups.add(self.student_group)
-        self.teacher = elearnUserFactory(
+        self.teacher = ElearnUserFactory(
             user=self.teacher_user, user_type='teacher')
         self.teacher_user.groups.add(self.teacher_group)
 
@@ -122,8 +136,9 @@ class FormTests(TestCase):
         self.assertTrue(form.is_valid())
 
     def test_material_form_valid(self):
+        file = SimpleUploadedFile("testfile.txt", b"file_content")
         # Test with a valid file upload
-        with open('path/to/test_file.txt', 'rb') as f:
+        with open(file, 'rb') as f:
             file_data = f.read()
         file = SimpleUploadedFile("test_file.txt", file_data)
         form_data = {
