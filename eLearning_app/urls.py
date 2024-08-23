@@ -1,8 +1,25 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from django.contrib.auth.views import LogoutView
+from rest_framework_simplejwt.views import TokenObtainPairView
 from . import views
+from . import api
+
+router = DefaultRouter()
+router.register(r'users', api.UserViewSet)
+router.register(r'elearnusers', api.ElearnUserViewSet)
+router.register(r'courses', api.CourseViewSet)
+router.register(r'materials', api.MaterialViewSet)
+router.register(r'feedbacks', api.FeedbackViewSet)
+router.register(r'statusupdates', api.StatusUpdateViewSet)
+router.register(r'chatrooms', api.ChatRoomViewSet)
+router.register(r'enrollments', api.EnrollmentViewSet)
 
 urlpatterns = [
+    # Include the API URLs
+    path('api/', include(router.urls)),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    # Elearning app site URLs
     path('', views.index, name='index'),
     path('register/student/', views.register_student, name='register_student'),
     path('register/teacher/', views.register_teacher, name='register_teacher'),
@@ -38,4 +55,6 @@ urlpatterns = [
          views.delete_status_update, name='delete_status_update'),
     path('chat-rooms/', views.chat_rooms, name='chat_rooms'),
     path('chat/<str:room_name>/', views.chat_room_detail, name='chat_room_detail'),
+    path('notification/<int:notification_id>/mark_as_read/',
+         views.mark_notification_as_read, name='mark_notification_as_read'),
 ]

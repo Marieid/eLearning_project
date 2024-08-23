@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
-from .models import Course, Enrollment, Material, StatusUpdate, ChatRoom, Message
+from .models import Course, Enrollment, Material, StatusUpdate, ChatRoom, Message, EnrollmentNotification, MaterialNotification
 from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm, UserProfileUpdateForm, MaterialForm, FeedbackForm, StatusUpdateForm, ChatRoomForm
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
@@ -55,19 +55,21 @@ def profile(request):
         if request.user.elearnuser.user_type == 'student':
             enrolled_courses = request.user.elearnuser.enrolled_courses.all()
             context['enrolled_courses'] = enrolled_courses
-
+         # Fetch unread enrollment and material notifications for the student user
+            enrollment_notifications = EnrollmentNotification.objects.filter(
+                student=request.user.elearnuser, read=False)
+            material_notifications = MaterialNotification.objects.filter(
+                student=request.user.elearnuser, read=False)
+            context['enrollment_notifications'] = enrollment_notifications
+            context['material_notifications'] = material_notifications
         elif request.user.elearnuser.user_type == 'teacher':
             courses_taught = Course.objects.filter(
                 teacher=request.user.elearnuser)
             context['courses_taught'] = courses_taught
-    if hasattr(request.user, 'elearnuser'):
-        if request.user.elearnuser.user_type == 'student':
-            enrolled_courses = request.user.elearnuser.enrolled_courses.all()
-            context['enrolled_courses'] = enrolled_courses
-        elif request.user.elearnuser.user_type == 'teacher':
-            courses_taught = Course.objects.filter(
-                teacher=request.user.elearnuser)
-            context['courses_taught'] = courses_taught
+            # Fetch unread enrollment notifications for the teacher user
+            enrollment_notifications = EnrollmentNotification.objects.filter(
+                teacher=request.user.elearnuser, read=False)
+            context['enrollment_notifications'] = enrollment_notifications
 
     context['chat_rooms'] = ChatRoom.objects.filter(members=request.user)
     context['status_update_form'] = StatusUpdateForm()
@@ -111,11 +113,8 @@ def create_course(request):
     return render(request, 'eLearning_app/create_course.html', {'form': form})
 
 
-@login_required
 def course_list(request):
-
     courses = Course.objects.filter(enrollment_status='open')
-
     if request.user.is_authenticated and hasattr(request.user, 'elearnuser') and request.user.elearnuser.user_type == 'student':
         enrolled_courses = request.user.elearnuser.enrolled_courses.all()
         print('course list, enrolled students: ' + str(enrolled_courses))
@@ -425,3 +424,24 @@ def chat_rooms(request):
         'chat_rooms': chat_rooms,
         'form': form
     })
+
+
+@login_required
+def mark_notification_as_read(request, notification_id):
+    try:
+        # Try to get EnrollmentNotification first
+        notification = EnrollmentNotification.objects.get(
+            id=notification_id, teacher=request.user.elearnuser)
+    except EnrollmentNotification.DoesNotExist:
+        # If not found, try to get MaterialNotification
+        try:
+            notification = MaterialNotification.objects.get(
+                id=notification_id, student=request.user.elearnuser)
+        except MaterialNotification.DoesNotExist:
+            messages.error(request, 'Notification not found.')
+            return redirect('profile')
+
+    notification.read = True
+    notification.save()
+    messages.success(request, 'Notification marked as read.')
+    return redirect('profile')

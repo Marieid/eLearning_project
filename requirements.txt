@@ -1,7 +1,9 @@
 django 
 djangorestframework 
+djangorestframework-simplejwt
 channels
 Pillow
 channels_redis
+factory_boy
 # brew
 redis 

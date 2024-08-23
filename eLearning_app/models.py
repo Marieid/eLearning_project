@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Q
+from django.db.models.signals import post_save, m2m_changed
+from django.dispatch import receiver
 
 
 class User(AbstractUser):
@@ -135,3 +137,24 @@ class Message(models.Model):
 
     def __str__(self):
         return f'{self.user.username}: {self.content[:20]}'
+
+
+# Notifications
+@receiver(post_save, sender=Enrollment)
+def create_enrollment_notification(sender, instance, created, **kwargs):
+    if created:
+        EnrollmentNotification.objects.create(
+            course=instance.course,
+            student=instance.student,
+            teacher=instance.course.teacher
+        )
+
+
+@receiver(post_save, sender=Material)
+def create_material_notification(sender, instance, created, **kwargs):
+    if created:
+        for student in instance.course.students.all():
+            MaterialNotification.objects.create(
+                material=instance,
+                student=student
+            )
