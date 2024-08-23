@@ -18,7 +18,6 @@ class UserFactory(DjangoModelFactory):
 class ElearnUserFactory(DjangoModelFactory):
     class Meta:
         model = elearnUser
-
     user = factory.SubFactory(UserFactory)
     user_type = factory.Iterator(
         elearnUser.USER_TYPE_CHOICES, getter=lambda c: c[0])

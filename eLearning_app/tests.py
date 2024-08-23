@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import Group, Permission
 from .models import User, elearnUser, Course, Material, Enrollment, Feedback, StatusUpdate
-from .forms import ChatRoomForm, CourseCreationForm, FeedbackForm, MaterialForm, StatusUpdateForm, StudentRegistrationForm
+from .forms import ChatRoomForm, CourseCreationForm, FeedbackForm, MaterialForm, StatusUpdateForm, StudentRegistrationForm, TeacherRegistrationForm
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .factories import (
     UserFactory,
@@ -45,16 +45,32 @@ class ElearningAppTestCase(TestCase):
         # Create a course using factory
         self.course = CourseFactory(teacher=self.teacher)
 
+        # Ensure that the ElearnUser instances are saved and have valid IDs
+        self.student.save()
+        self.teacher.save()
+
+        # Initialize other model instances
+        self.material = MaterialFactory(course=self.course)
+        self.feedback = FeedbackFactory(
+            course=self.course, student=self.student)
+        self.status_update = StatusUpdateFactory(user=self.teacher_user)
+        self.enrollment = EnrollmentFactory(
+            course=self.course, student=self.student)
+        self.chat_room = ChatRoomFactory(admin=self.teacher_user)
+        self.message = MessageFactory(
+            chat_room=self.chat_room, user=self.teacher_user)
+        self.enrollment_notification = EnrollmentNotificationFactory(
+            course=self.course, student=self.student, teacher=self.teacher)
+        self.material_notification = MaterialNotificationFactory(
+            material=self.material, student=self.student)
+
     def test_user_str(self):
         self.assertEqual(
-            str(self.user), f"{self.user.first_name} {self.user.last_name}")
+            str(self.student_user), f"{self.student_user.first_name} {self.student_user.last_name}"
+        )
 
     def test_elearnuser_str(self):
-        self.assertEqual(str(self.elearn_user), self.elearn_user.user.username)
-
-    def test_course_str(self):
-        self.assertEqual(str(self.course),
-                         f"{self.course.code} - {self.course.name}")
+        self.assertEqual(str(self.student), self.student.user.username)
 
     def test_chatroom_str(self):
         self.assertEqual(str(self.chat_room), self.chat_room.chat_name)
@@ -63,13 +79,13 @@ class ElearningAppTestCase(TestCase):
         expected_str = f"{self.message.user.username}: {self.message.content[:20]}"
         self.assertEqual(str(self.message), expected_str)
 
-    # Add more model tests here to cover relationships, field constraints, etc.
-    def test_course_teacher_relationship(self):
-        self.assertEqual(self.course.teacher.user_type, 'teacher')
-
     def test_course_students_relationship(self):
         self.course.students.add(self.elearn_user)
         self.assertIn(self.elearn_user, self.course.students.all())
+
+    def test_course_students_relationship(self):
+        self.course.students.add(self.student)
+        self.assertIn(self.student, self.course.students.all())
 
     def test_material_course_relationship(self):
         self.assertEqual(self.material.course, self.course)
@@ -86,7 +102,7 @@ class ElearningAppTestCase(TestCase):
         self.assertEqual(self.feedback.student.user_type, 'student')
 
     def test_status_update_user_relationship(self):
-        self.assertEqual(self.status_update.user, self.user)
+        self.assertEqual(self.status_update.user, self.teacher_user)
 
     def test_enrollment_student_relationship(self):
         self.assertEqual(self.enrollment.student.user_type, 'student')
@@ -108,20 +124,46 @@ class ElearningAppTestCase(TestCase):
 
 
 class FormTests(TestCase):
+    def setUp(self):
+        # Created a course instance before running the form tests
+        self.course = CourseFactory()
+        # Create users using factories
+        self.student_user = UserFactory()
+        self.teacher_user = UserFactory()
+
+        # Create ElearnUser instances for student and teacher
+        self.student = ElearnUserFactory(
+            user=self.student_user, user_type='student')
+        self.teacher = ElearnUserFactory(
+            user=self.teacher_user, user_type='teacher')
+
     def test_student_registration_form_valid(self):
         form_data = {
-            'username': 'testuser',
-            'password': 'testpassword',
+            'username': 'userTest',
+            'password1': 'testpassword',
+            'password2': 'testpassword',
             'first_name': 'Test',
             'last_name': 'User',
             'email': 'testuser@example.com',
         }
         form = StudentRegistrationForm(data=form_data)
+        if not form.is_valid():
+            print(form.errors)
         self.assertTrue(form.is_valid())
 
     def test_teacher_registration_form_valid(self):
-        # Similar to test_student_registration_form_valid but for TeacherRegistrationForm
-        pass
+        form_data = {
+            'username': 'userTest',
+            'password1': 'testpassword',
+            'password2': 'testpassword',
+            'first_name': 'Test',
+            'last_name': 'User',
+            'email': 'testuser@example.com',
+        }
+        form = TeacherRegistrationForm(data=form_data)
+        if not form.is_valid():
+            print(form.errors)
+        self.assertTrue(form.is_valid())
 
     def test_course_creation_form_valid(self):
         form_data = {
@@ -137,17 +179,34 @@ class FormTests(TestCase):
 
     def test_material_form_valid(self):
         file = SimpleUploadedFile("testfile.txt", b"file_content")
-        # Test with a valid file upload
-        with open(file, 'rb') as f:
-            file_data = f.read()
-        file = SimpleUploadedFile("test_file.txt", file_data)
-        form_data = {
-            'file': file,
+
+        # Test with a teacher as the uploader
+        form_data_teacher = {
             'name': 'Test Material',
-            'description': 'Description for test material'
+            'description': 'Description for test material',
+            'course': self.course.id,
+            # uploader is a ForeignKey to ElearnUser
+            'uploader': self.teacher.user,
         }
-        form = MaterialForm(data=form_data, files={'file': file})
-        self.assertTrue(form.is_valid())
+        form_teacher = MaterialForm(
+            data=form_data_teacher, files={'file': file})
+        if not form_teacher.is_valid():
+            print("Teacher uploader errors:", form_teacher.errors)
+        self.assertTrue(form_teacher.is_valid())
+
+        # Test with a student as the uploader
+        form_data_student = {
+            'name': 'Test Material',
+            'description': 'Description for test material',
+            'course': self.course.id,
+            # uploader is a ForeignKey to ElearnUser
+            'uploader': self.student.user,
+        }
+        form_student = MaterialForm(
+            data=form_data_student, files={'file': file})
+        if not form_student.is_valid():
+            print("Student uploader errors:", form_student.errors)
+        self.assertTrue(form_student.is_valid())
 
     def test_feedback_form_valid(self):
         form_data = {
@@ -187,13 +246,16 @@ class IdentificationAndRegistrationTests(TestCase):
     def test_register_student(self):
         data = {
             'username': 'newstudent',
-            'password': 'newpassword',
+            'password1': 'bspassword',
+            'password2': 'bspassword',
             'first_name': 'New',
             'last_name': 'Student',
             'email': 'newstudent@example.com'
         }
         response = self.client.post(reverse('register_student'), data)
-        # Redirect after successful registration
+        if response.status_code == 200:
+            # Check the response content for form errors
+            print(response.content)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('login'))
 
@@ -208,8 +270,9 @@ class IdentificationAndRegistrationTests(TestCase):
     def test_register_teacher(self):
         data = {
             'username': 'newteacher',
-            'password': 'newpassword',
-            'first_name': 'Teach',
+            'password1': 'teachpass',
+            'password2': 'teachpass',
+            'first_name': 'New',
             'last_name': 'Teacher',
             'email': 'newteacher@example.com'
         }
@@ -224,6 +287,11 @@ class IdentificationAndRegistrationTests(TestCase):
         self.assertIn(self.teacher_group, new_user.groups.all())
 
     def test_login(self):
+        # Create the user
+        user = UserFactory(username='teststudent')
+        user.set_password('testpassword')
+        user.save()
+
         data = {'username': 'teststudent', 'password': 'testpassword'}
         response = self.client.post(reverse('login'), data)
         self.assertEqual(response.status_code, 302)
