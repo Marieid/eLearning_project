@@ -1,37 +1,19 @@
-from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import Q
-from django.db.models.signals import post_save, m2m_changed
+from django.contrib.auth.models import AbstractUser
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
 class User(AbstractUser):
-    id = models.BigAutoField(primary_key=True)
     profile_picture = models.ImageField(
         upload_to='profile_pics', blank=True, null=True)
-    first_name = models.CharField(max_length=256, null=False, blank=False)
-    last_name = models.CharField(max_length=256, null=False, blank=False)
-    email = models.EmailField(max_length=256,
-                              null=False, blank=False)
-
-    groups = models.ManyToManyField(
-        'auth.Group',
-        related_name='eLearning_users',
-        blank=True,
-        help_text='The groups this user belongs to.',
-        verbose_name='groups',
-    )
-    user_permissions = models.ManyToManyField(
-        'auth.Permission',
-        related_name='eLearning_users',
-
-        blank=True,
-        help_text='Specific permissions for this user.',
-        verbose_name='user permissions',
-    )
+    first_name = models.CharField(max_length=256)
+    last_name = models.CharField(max_length=256)
+    email = models.EmailField(max_length=256)
 
     def __str__(self):
-        return self.first_name + ' ' + self.last_name
+        return f"{self.first_name} {self.last_name}"
 
 
 class elearnUser(models.Model):
@@ -49,7 +31,6 @@ class elearnUser(models.Model):
 
 class Course(models.Model):
     id = models.BigAutoField(primary_key=True)
-    # Unique course code
     code = models.CharField(max_length=256, unique=True)
     name = models.CharField(max_length=256)
     description = models.TextField()
@@ -59,13 +40,11 @@ class Course(models.Model):
         elearnUser, blank=True, related_name='enrolled_courses', limit_choices_to=Q(user_type='student'))
     start_date = models.DateField()
     end_date = models.DateField()
-    enrollment_status = models.CharField(max_length=20, choices=[
-        ('open', 'Open'),
-        ('closed', 'Closed'),
-    ], default='open')
+    enrollment_status = models.CharField(max_length=20, choices=[(
+        'open', 'Open'), ('closed', 'Closed')], default='open')
 
     def __str__(self):
-        return self.code + ' - ' + self.name
+        return f"{self.code} - {self.name}"
 
 
 class Material(models.Model):
@@ -81,11 +60,10 @@ class Material(models.Model):
 
 class Feedback(models.Model):
     id = models.BigAutoField(primary_key=True)
-    # Use elearnUser for student, limiting choices to students only
     student = models.ForeignKey(
         elearnUser, on_delete=models.CASCADE, limit_choices_to=Q(user_type='student'))
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    rating = models.IntegerField()
+    rating = models.PositiveIntegerField()  # Ensure rating is positive
     comment = models.TextField()
 
 
@@ -94,6 +72,7 @@ class StatusUpdate(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     content = models.TextField()
+
 
 class Enrollment(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -129,6 +108,7 @@ class ChatRoom(models.Model):
     def __str__(self):
         return self.chat_name
 
+
 class Message(models.Model):
     chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -139,7 +119,6 @@ class Message(models.Model):
         return f'{self.user.username}: {self.content[:20]}'
 
 
-# Notifications
 @receiver(post_save, sender=Enrollment)
 def create_enrollment_notification(sender, instance, created, **kwargs):
     if created:

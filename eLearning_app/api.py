@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, mixins
 from .models import User, elearnUser, Course, Material, Feedback, StatusUpdate, ChatRoom, Enrollment
 from .serializers import UserSerializer, ElearnUserSerializer, CourseListSerializer, MaterialSerializer, FeedbackSerializer, StatusUpdateSerializer, ChatRoomSerializer, EnrollmentSerializer
 
@@ -7,8 +7,9 @@ from .serializers import UserSerializer, ElearnUserSerializer, CourseListSeriali
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
+        # Allow read-only access for everyone
         if request.method in permissions.SAFE_METHODS:
-          # Allow read-only access for all
+
             return True
         # Allow write access only to the owner
         return obj.user == request.user
@@ -25,13 +26,13 @@ class IsTeacherOrReadOnly(permissions.BasePermission):
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
 
 
-class ElearnUserViewSet(viewsets.ReadOnlyModelViewSet):
+class ElearnUserViewSet(viewsets.ModelViewSet):
     queryset = elearnUser.objects.all()
     serializer_class = ElearnUserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
 
 # Allow full CRUD for teachers, read-only for students
@@ -92,7 +93,10 @@ class ChatRoomViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
 
-class EnrollmentViewSet(viewsets.ReadOnlyModelViewSet):
+class EnrollmentViewSet(mixins.CreateModelMixin,
+                        mixins.RetrieveModelMixin,
+                        mixins.ListModelMixin,
+                        viewsets.GenericViewSet):
     queryset = Enrollment.objects.all()
     serializer_class = EnrollmentSerializer
     permission_classes = [permissions.IsAuthenticated]

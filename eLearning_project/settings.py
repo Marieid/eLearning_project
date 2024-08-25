@@ -85,14 +85,22 @@ TEMPLATES = [
 # Use ASGI instead of WSGI
 ASGI_APPLICATION = 'eLearning_project.asgi.application'
 
+# For in-memory channel layer (development)
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
-        },
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
     },
 }
+
+# For Redis channel layer (production or more robust message handling)
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],  # Replace with your Redis server details
+#         },
+#     },
+# }
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases

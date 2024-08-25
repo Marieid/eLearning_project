@@ -419,7 +419,8 @@ def chat_rooms(request):
     else:
         form = ChatRoomForm()
 
-    chat_rooms = request.user.chat_rooms.all()
+    # Fetches all chat rooms
+    chat_rooms = ChatRoom.objects.all()  
     return render(request, 'eLearning_app/chat_rooms.html', {
         'chat_rooms': chat_rooms,
         'form': form

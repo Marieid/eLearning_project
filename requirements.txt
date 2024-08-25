@@ -5,5 +5,6 @@ channels
 Pillow
 channels_redis
 factory_boy
+daphne
 # brew
 redis 

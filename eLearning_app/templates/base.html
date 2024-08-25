@@ -4,7 +4,7 @@
     <title>eLearning App</title>
 </head>
 <body>
-    
+
     {% if messages %}
         <ul class="messages">
             {% for message in messages %}
@@ -12,6 +12,7 @@
             {% endfor %}
         </ul>
     {% endif %}
+
     <div class="container">
         {% if user.is_authenticated %}
             <p>Welcome, {{ user.username }}!</p>
@@ -27,7 +28,9 @@
         {% block content %}
         {% endblock %}
     </div>
-    
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>  {# Include jQuery here #}
+    {% block scripts %}
+    {% endblock %}
 </body>
 </html>
