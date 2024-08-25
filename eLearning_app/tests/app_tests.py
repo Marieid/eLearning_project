@@ -21,7 +21,6 @@ from .factories import (
     MaterialNotificationFactory,
 )
 
-
 class ElearningAppTestCase(TestCase):
     def setUp(self):
         self.client = Client()
