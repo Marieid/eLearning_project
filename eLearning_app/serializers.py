@@ -27,12 +27,6 @@ class CourseListSerializer(serializers.ModelSerializer):
                   'teacher_name', 'start_date', 'end_date']
 
 
-class CourseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Course
-        fields = ['name', 'description', 'start_date', 'end_date']
-
-
 class StatusUpdateSerializer(serializers.ModelSerializer):
     user = UserSerializer()
 
@@ -57,7 +51,7 @@ class EnrollmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Enrollment
-        fields = ['id', 'student', 'course', 'date_enrolled']
+        fields = ['id', 'student', 'course']
 
 
 class EnrollmentNotificationSerializer(serializers.ModelSerializer):

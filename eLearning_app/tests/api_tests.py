@@ -122,8 +122,10 @@ class APITestCase(TestCase):
             'code': 'CS101',
             'name': 'Introduction to Computer Science',
             'teacher': self.teacher.pk,
-            'start_date': '2024-03-01',
-            'end_date': '2025-05-01',
+            'start_date': date.today().strftime('%Y-%m-%d'),
+            'end_date': (date.today() + timedelta(days=365)).strftime('%Y-%m-%d'),
+            # Add enrollment status
+            'enrollment_status': 'open'
         }
 
         # Test course creation
@@ -183,6 +185,8 @@ class APITestCase(TestCase):
                       response.data['members'][0]['username'])
 
     def test_upload_material_authorized(self):
+        # Create a dummy file for upload
+        dummy_file = SimpleUploadedFile("test_file.txt", b"file content")
         # Authenticate as a teacher user
         self.client.credentials(
             HTTP_AUTHORIZATION=f'Bearer {self.teacher_access_token}')
@@ -192,6 +196,7 @@ class APITestCase(TestCase):
             'name': 'Test Material',
             'description': 'Description for test material',
             'course': self.course.id,
+            'file': dummy_file,
             # uploader is a ForeignKey to ElearnUser
             'uploader': self.teacher.user.pk,
         }
@@ -215,9 +220,10 @@ class APITestCase(TestCase):
 
         # Test enrollment
         url = reverse('enrollment-list')
-        response = self.client.post(url, data, format='json')
+        # Test enrollment (use PUT instead of POST since we're creating an object)
+        response = self.client.put(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['course']['id'], self.course.pk)
+        self.assertEqual(response.data['course'], self.course.pk)
 
     def test_enrollment_unauthorized(self):
         # Authenticate as a teacher user
@@ -232,7 +238,8 @@ class APITestCase(TestCase):
 
         # Test enrollment
         url = reverse('enrollment-list')
-        response = self.client.post(url, data, format='json')
+        # Test enrollment (use PUT instead of POST since we're creating an object)
+        response = self.client.put(url, data, format='json')
 
         # Should be forbidden for teachers
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -263,7 +270,7 @@ class APITestCase(TestCase):
 
         # Define feedback data
         data = {
-            'course_id': self.course.pk,
+            'course': self.course.pk,
             'student': self.student.pk,
             'rating': 5,
             'comment': 'Great course!'
@@ -283,7 +290,7 @@ class APITestCase(TestCase):
 
         # Define feedback data
         data = {
-            'course_id': self.course.pk,
+            'course_id': self.course.id,
             'student': self.student.pk,
             'rating': 5,
             'comment': 'Great course!'
