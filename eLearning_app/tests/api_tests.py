@@ -3,7 +3,8 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from datetime import date
+from django.core.files.uploadedfile import SimpleUploadedFile
+from datetime import date, timedelta
 from .factories import (
     UserFactory,
     ElearnUserFactory,
@@ -122,9 +123,8 @@ class APITestCase(TestCase):
             'code': 'CS101',
             'name': 'Introduction to Computer Science',
             'teacher': self.teacher.pk,
-            'start_date': date.today().strftime('%Y-%m-%d'),
-            'end_date': (date.today() + timedelta(days=365)).strftime('%Y-%m-%d'),
-            # Add enrollment status
+            'start_date': '2024-09-03',
+            'end_date': '2025-09-03',
             'enrollment_status': 'open'
         }
 
@@ -145,10 +145,10 @@ class APITestCase(TestCase):
             'code': 'CS101',
             'name': 'Introduction to Computer Science',
             'teacher': self.teacher.pk,
-            'start_date': '2024-09-01',
-            'start_date': '2025-03-01'
+            'start_date': '2024-09-03',
+            'end_date': '2025-09-03',
+            'enrollment_status': 'open'
         }
-
         # Test course creation
         url = reverse('course-list')
         response = self.client.post(url, data, format='json')
@@ -198,7 +198,7 @@ class APITestCase(TestCase):
             'course': self.course.id,
             'file': dummy_file,
             # uploader is a ForeignKey to ElearnUser
-            'uploader': self.teacher.user.pk,
+            'uploader': self.teacher.pk,
         }
 
         # Test material upload
@@ -220,8 +220,7 @@ class APITestCase(TestCase):
 
         # Test enrollment
         url = reverse('enrollment-list')
-        # Test enrollment (use PUT instead of POST since we're creating an object)
-        response = self.client.put(url, data, format='json')
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['course'], self.course.pk)
 
@@ -229,19 +228,17 @@ class APITestCase(TestCase):
         # Authenticate as a teacher user
         self.client.credentials(
             HTTP_AUTHORIZATION=f'Bearer {self.teacher_access_token}')
+
         # Define enrollment data
         data = {
-            # Trying to enroll the teacher
-            'student': self.teacher.pk,
+            'student': self.teacher.pk,  # Trying to enroll the teacher
             'course': self.course.pk,
         }
 
         # Test enrollment
         url = reverse('enrollment-list')
-        # Test enrollment (use PUT instead of POST since we're creating an object)
-        response = self.client.put(url, data, format='json')
-
-        # Should be forbidden for teachers
+        # Changed from PUT to POST
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_material_authorized(self):
@@ -249,13 +246,16 @@ class APITestCase(TestCase):
         self.client.credentials(
             HTTP_AUTHORIZATION=f'Bearer {self.teacher_access_token}')
 
+        # Create a dummy file for the material
+        dummy_file = SimpleUploadedFile("test_file.txt", b"file content")
+
         # Data for creating a material
         data = {
             'title': 'New Material',
             'description': 'Material for the test course',
             'course': self.course.pk,  # Link this material to the existing course
             'uploader': self.teacher.pk,
-            'file': None,  # Assuming there's a file field; set to None or use a mock file
+            'file': dummy_file,
         }
 
         # Test authorized creation of material
@@ -270,7 +270,7 @@ class APITestCase(TestCase):
 
         # Define feedback data
         data = {
-            'course': self.course.pk,
+            'course': self.course.id,
             'student': self.student.pk,
             'rating': 5,
             'comment': 'Great course!'
