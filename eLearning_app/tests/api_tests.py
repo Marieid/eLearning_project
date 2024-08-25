@@ -122,7 +122,7 @@ class APITestCase(TestCase):
         self.client.login(username='teacher', password='password')
         url = reverse('course-list')
         data = {
-            'code': 'TEST202',
+            'code': 'MM1010',
             'name': 'Another Test Course',
             "description": "Test Description",
             'start_date': '2024-01-01',
@@ -131,8 +131,8 @@ class APITestCase(TestCase):
         }
         response = self.client.post(url, data, format='json')
         response = self.client.post(url, data, format='json')
+        print(" test_create_course_authorized: ")
         print(response.data)
-
         # Assert on the status code and potentially other aspects of the response
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -144,7 +144,7 @@ class APITestCase(TestCase):
 
         # Define course data
         data = {
-            'title': 'CS101',
+            'title': 'CS105',
             'description': 'Introduction to Computer Science',
             'teacher': self.teacher.pk
         }
@@ -152,6 +152,8 @@ class APITestCase(TestCase):
         # Test course creation
         url = reverse('course-list')
         response = self.client.post(url, data, format='json')
+        print(" test_create_course_unauthorized: ")
+        print(response.data)
         # Should be forbidden for students
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -160,9 +162,18 @@ class APITestCase(TestCase):
         self.client.login(username='teacher', password='password')
         url = reverse('course-detail', kwargs={'pk': 1})
         # Updated course data
-        data = {'title': 'Advanced Computer Science'}
+        data = {
+            'code': 'Check01',
+            'name': 'New course updated',
+            "description": "Test Description",
+            'start_date': '2024-01-01',
+            'end_date': '2024-12-31',
+            'enrollment_status': 'open'
+        }
         # Test course update
         response = self.client.put(url, data, format='json')
+        print(" test_update_course_authorized: ")
+        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_access_chat_room_authorized(self):
@@ -198,7 +209,7 @@ class APITestCase(TestCase):
         url = reverse('add_material', kwargs={'course_id': self.course.pk})
         response = self.client.post(url, data, format='json')
         # Output response for debugging
-        print(" test_upload_material_authorized Response Data \n")
+        print(" test_upload_material_authorized: ")
         print(response)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['name'], 'Lecture Notes')
