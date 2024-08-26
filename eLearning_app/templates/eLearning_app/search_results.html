@@ -1,0 +1,26 @@
+{% extends 'base.html' %} {% block content %}
+<h1>Search Results</h1>
+
+{% if users %}
+<ul id="user-search-results">
+  {% for user in users %}
+  <li class="user-card">
+    {# Add a class for styling #} {% if user.profile_picture %}
+    <img
+      src="{{ user.profile_picture.url }}"
+      alt="{{ user.username }}'s profile picture"
+      class="profile-pic"
+      width="200"
+    />
+  </br>
+    {% endif %}
+    <a href="{% url 'user_profile_detail' user_id=user.id %}">
+      {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
+    </a>
+    {% if user.elearnuser %} - {{ user.elearnuser.user_type }} {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No users found.</p>
+{% endif %} {% endblock %}

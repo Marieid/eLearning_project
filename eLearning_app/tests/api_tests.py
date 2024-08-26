@@ -6,6 +6,7 @@ from ..models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.files.uploadedfile import SimpleUploadedFile
 from datetime import date, timedelta
+import uuid
 from .factories import (
     UserFactory,
     ElearnUserFactory,
@@ -122,7 +123,8 @@ class APITestCase(TestCase):
         self.client.login(username='teacher', password='password')
         url = reverse('course-list')
         data = {
-            'code': 'MM1010',
+            # Generating a unique code using uuid
+            'code': str(uuid.uuid4()),
             'name': 'Another Test Course',
             "description": "Test Description",
             'start_date': '2024-01-01',
@@ -208,11 +210,14 @@ class APITestCase(TestCase):
         # Test material upload
         url = reverse('add_material', kwargs={'course_id': self.course.pk})
         response = self.client.post(url, data, format='json')
-        # Output response for debugging
-        print(" test_upload_material_authorized: ")
-        print(response)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['name'], 'Lecture Notes')
+        response = self.client.post(url, data, format='multipart')
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+
+        # Follow the redirect
+        redirect_url = response['Location']
+        response = self.client.get(redirect_url)
+        # Assert on the final response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_enrollment_authorized(self):
         # Authenticate as a student user

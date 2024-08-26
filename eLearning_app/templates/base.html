@@ -24,7 +24,10 @@
         {% else %}
             <p><a href="{% url 'login' %}">Login</a> | <a href="{% url 'register_student' %}">Register as Student</a> | <a href="{% url 'register_teacher' %}">Register as Teacher</a></p>
         {% endif %}
-
+        <form action="{% url 'search_users' %}" method="get">
+            <input type="text" name="q" placeholder="Search for users...">
+            <button type="submit">Search</button>
+        </form>
         {% block content %}
         {% endblock %}
     </div>

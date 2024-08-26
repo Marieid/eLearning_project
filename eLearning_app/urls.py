@@ -57,4 +57,7 @@ urlpatterns = [
     path('chat/<str:room_name>/', views.chat_room_detail, name='chat_room_detail'),
     path('notification/<int:notification_id>/mark_as_read/',
          views.mark_notification_as_read, name='mark_notification_as_read'),
+    path('search/', views.search_users, name='search_users'),
+    path('user/<int:user_id>/', views.user_profile_detail,
+         name='user_profile_detail'),
 ]

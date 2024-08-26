@@ -6,5 +6,7 @@ Pillow
 channels_redis
 factory_boy
 daphne
+selenium
+pytest-django
 # brew
 redis 

@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
-from .models import Course, Enrollment, Material, StatusUpdate, ChatRoom, Message, EnrollmentNotification, MaterialNotification
+from .models import User, elearnUser, Course, Enrollment, Material, StatusUpdate, ChatRoom, Message, EnrollmentNotification, MaterialNotification
 from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm, UserProfileUpdateForm, MaterialForm, FeedbackForm, StatusUpdateForm, ChatRoomForm
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
@@ -420,7 +420,7 @@ def chat_rooms(request):
         form = ChatRoomForm()
 
     # Fetches all chat rooms
-    chat_rooms = ChatRoom.objects.all()  
+    chat_rooms = ChatRoom.objects.all()
     return render(request, 'eLearning_app/chat_rooms.html', {
         'chat_rooms': chat_rooms,
         'form': form
@@ -446,3 +446,52 @@ def mark_notification_as_read(request, notification_id):
     notification.save()
     messages.success(request, 'Notification marked as read.')
     return redirect('profile')
+
+
+@login_required
+def search_users(request):
+    query = request.GET.get('q')
+    if query:
+        users = User.objects.filter(
+            Q(username__icontains=query) |
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query)
+        )
+
+        # Also search within elearnUser (case-insensitive)
+        elearn_users = elearnUser.objects.filter(
+            # Case-insensitive search on username
+            Q(user__username__iexact=query) |
+            Q(user__first_name__iexact=query) |
+            Q(user__last_name__iexact=query)
+        )
+
+        # Combine results and remove duplicates
+        users = list(users) + [eu.user for eu in elearn_users]
+        users = list({u.id: u for u in users}.values())
+    else:
+        users = []
+
+    return render(request, 'eLearning_app/search_results.html', {'users': users})
+
+
+@login_required
+def user_profile_detail(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+
+    context = {'profile_user': user}
+
+    if hasattr(user, 'elearnuser'):
+        if user.elearnuser.user_type == 'student':
+            # Fetch and add enrolled courses to the context
+            enrolled_courses = user.elearnuser.enrolled_courses.all()
+            context['enrolled_courses'] = enrolled_courses
+            # ... other student-specific information
+
+        elif user.elearnuser.user_type == 'teacher':
+            # Fetch and add courses taught to the context
+            courses_taught = Course.objects.filter(teacher=user.elearnuser)
+            context['courses_taught'] = courses_taught
+            # ... other teacher-specific information
+
+    return render(request, 'eLearning_app/profile.html', context)
