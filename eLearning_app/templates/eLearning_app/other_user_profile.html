@@ -1,0 +1,44 @@
+{% extends 'base.html' %} {% block content %}
+<h2>User Profile</h2>
+
+<h3>{{ user.first_name }} {{ user.last_name }}</h3>
+
+{% if user.profile_picture %}
+<img src="{{ user.profile_picture.url }}" alt="Profile Picture" width="200" />
+{% else %}
+<p>No profile picture yet.</p>
+{% endif %}
+
+<p>Username: {{ user.username }}</p>
+
+{% if user.elearnuser.user_type == 'student' %}
+<h3>Enrolled Courses</h3>
+<ul>
+  {% for course in user.elearnuser.enrolled_courses.all %}
+  <li>
+    <a href="{% url 'course_detail' course.id %}">{{ course.name }}</a>
+  </li>
+  {% endfor %}
+</ul>
+
+{% elif user.elearnuser.user_type == 'teacher' %}
+<h3>Courses Taught</h3>
+<ul>
+  {% for course in courses_taught %}
+  <li>
+    <a href="{% url 'course_detail' course.id %}">{{ course.name }}</a>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+<h3>Status Updates</h3>
+<ul id="status-updates-list">
+  {% for status_update in user.statusupdate_set.all %} {% include
+  'eLearning_app/status_update.html' %} {% endfor %}
+</ul>
+
+<!-- Link to the chat rooms page -->
+<a href="{% url 'chat_rooms' %}">Go to Chat Rooms</a>
+
+{% endblock %}

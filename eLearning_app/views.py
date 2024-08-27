@@ -475,6 +475,27 @@ def search_users(request):
     return render(request, 'eLearning_app/search_results.html', {'users': users})
 
 
+def view_other_user_profile(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+
+    context = {'profile_user': user}
+
+    if hasattr(user, 'elearnuser'):
+        if user.elearnuser.user_type == 'student':
+            # Fetch and add enrolled courses to the context (consider privacy here)
+            enrolled_courses = user.elearnuser.enrolled_courses.all()
+            context['enrolled_courses'] = enrolled_courses
+            # ... other student-specific information you want to display publicly
+
+        elif user.elearnuser.user_type == 'teacher':
+            # Fetch and add courses taught to the context
+            courses_taught = Course.objects.filter(teacher=user.elearnuser)
+            context['courses_taught'] = courses_taught
+            # ... other teacher-specific information you want to display publicly
+
+    return render(request, 'eLearning_app/other_user_profile.html', context)
+
+
 @login_required
 def user_profile_detail(request, user_id):
     user = get_object_or_404(User, id=user_id)
