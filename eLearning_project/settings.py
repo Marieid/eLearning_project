@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'eLearning_app',
     'channels',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [

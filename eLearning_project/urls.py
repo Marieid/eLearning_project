@@ -20,8 +20,11 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Include app's URLs
+    # Main elearning app's URLs
     path('', include('eLearning_app.urls')),
+    # API app's URLs
+    path('api/', include('api.urls')),
+
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL,
