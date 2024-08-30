@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, elearnUser, Course, Material, Feedback, StatusUpdate, ChatRoom, Enrollment, EnrollmentNotification, MaterialNotification
+from eLearning_app.models import User, elearnUser, Course, Material, Feedback, StatusUpdate, ChatRoom, Enrollment, EnrollmentNotification, MaterialNotification
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -20,11 +20,23 @@ class ElearnUserSerializer(serializers.ModelSerializer):
 class CourseListSerializer(serializers.ModelSerializer):
     teacher_name = serializers.CharField(
         source='teacher.user.get_full_name', read_only=True)
+    # Include description for more context
+    description = serializers.CharField(read_only=True)
 
     class Meta:
         model = Course
-        fields = ['id', 'code', 'name',
-                  'teacher_name', 'start_date', 'end_date']
+        fields = ['id', 'code', 'name', 'teacher_name',
+                  'description', 'start_date', 'end_date']
+
+
+class CourseDetailSerializer(serializers.ModelSerializer):
+    teacher = ElearnUserSerializer(read_only=True)
+    students = ElearnUserSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Course
+        fields = ['id', 'code', 'name', 'description', 'teacher',
+                  'students', 'start_date', 'end_date', 'enrollment_status']
 
 
 class StatusUpdateSerializer(serializers.ModelSerializer):
@@ -67,17 +79,29 @@ class EnrollmentNotificationSerializer(serializers.ModelSerializer):
 class FeedbackSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(
         source='student.user.get_full_name', read_only=True)
+    course_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Feedback
-        fields = ['id', 'student_name', 'course', 'rating', 'comment']
+        fields = ['id', 'student_name', 'course_name',
+                  'rating', 'comment']
+
+    def get_course_name(self, obj):
+        return obj.course.name
 
 
 class MaterialSerializer(serializers.ModelSerializer):
+    course_name = serializers.CharField(
+        source='course.name', read_only=True)  # Include course name
+    uploader_name = serializers.CharField(
+        source='uploader.user.get_full_name', read_only=True)
+    uploader_type = serializers.CharField(
+        source='uploader.user_type', read_only=True)
+
     class Meta:
         model = Material
-        fields = ['id', 'name', 'description',
-                  'file', 'upload_date', 'file_type']
+        fields = ['id', 'name', 'description', 'file', 'upload_date',
+                  'file_type', 'course_name', 'uploader_name', 'uploader_type']
 
 
 class MaterialNotificationSerializer(serializers.ModelSerializer):

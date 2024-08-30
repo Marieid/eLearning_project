@@ -1,24 +1,10 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
 from django.contrib.auth.views import LogoutView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from . import views
-from . import api
 
-router = DefaultRouter()
-router.register(r'users', api.UserViewSet)
-router.register(r'elearnusers', api.ElearnUserViewSet)
-router.register(r'courses', api.CourseViewSet)
-router.register(r'materials', api.MaterialViewSet)
-router.register(r'feedbacks', api.FeedbackViewSet)
-router.register(r'statusupdates', api.StatusUpdateViewSet)
-router.register(r'chatrooms', api.ChatRoomViewSet)
-router.register(r'enrollments', api.EnrollmentViewSet)
 
 urlpatterns = [
-    # Include the API URLs
-    path('api/', include(router.urls)),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     # Elearning app site URLs
     path('', views.index, name='index'),
     path('register/student/', views.register_student, name='register_student'),

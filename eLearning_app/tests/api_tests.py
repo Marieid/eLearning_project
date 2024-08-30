@@ -1,5 +1,6 @@
 from django.test import TestCase, Client
 from django.urls import reverse
+from rest_framework.parsers import MultiPartParser
 from rest_framework.test import APIClient
 from rest_framework import status
 from ..models import User
@@ -7,6 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.files.uploadedfile import SimpleUploadedFile
 from datetime import date, timedelta
 import uuid
+import pytest
 from .factories import (
     UserFactory,
     ElearnUserFactory,
@@ -124,27 +126,21 @@ class APITestCase(TestCase):
         url = reverse('course-list')
         data = {
             # Generating a unique code using uuid
-            'code': str(uuid.uuid4()),
-            'name': 'Another Test Course',
-            "description": "Test Description",
-            'start_date': '2024-01-01',
-            'end_date': '2024-12-31',
+            'code': 'CS105',
+            'name': 'Introduction to Computer Science',
+            'teacher': self.teacher.pk,
+            'start_date': date.today().strftime('%Y-%m-%d'),
+            'end_date': (date.today() + timedelta(days=365)).strftime('%Y-%m-%d'),
             'enrollment_status': 'open'
         }
         response = self.client.post(url, data, format='json')
-        response = self.client.post(url, data, format='json')
-        print(" test_create_course_authorized: ")
-        print(response.data)
-        # Assert on the status code and potentially other aspects of the response
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_course_unauthorized(self):
         # Authenticate as a student user
         self.client.credentials(
             HTTP_AUTHORIZATION=f'Bearer {self.student_access_token}')
-
-        # Define course data
         data = {
             'title': 'CS105',
             'description': 'Introduction to Computer Science',
@@ -154,8 +150,7 @@ class APITestCase(TestCase):
         # Test course creation
         url = reverse('course-list')
         response = self.client.post(url, data, format='json')
-        print(" test_create_course_unauthorized: ")
-        print(response.data)
+
         # Should be forbidden for students
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -163,7 +158,7 @@ class APITestCase(TestCase):
         # Authenticate as a teacher user
         self.client.login(username='teacher', password='password')
         url = reverse('course-detail', kwargs={'pk': 1})
-        # Updated course data
+
         data = {
             'code': 'Check01',
             'name': 'New course updated',
@@ -174,8 +169,7 @@ class APITestCase(TestCase):
         }
         # Test course update
         response = self.client.put(url, data, format='json')
-        print(" test_update_course_authorized: ")
-        print(response.data)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_access_chat_room_authorized(self):
@@ -209,11 +203,11 @@ class APITestCase(TestCase):
 
         # Test material upload
         url = reverse('add_material', kwargs={'course_id': self.course.pk})
-        response = self.client.post(url, data, format='json')
+        self.client.parser_classes = [MultiPartParser]
         response = self.client.post(url, data, format='multipart')
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
-        # Follow the redirect
+        # Follows the redirect
         redirect_url = response['Location']
         response = self.client.get(redirect_url)
         # Assert on the final response
@@ -227,12 +221,15 @@ class APITestCase(TestCase):
         # Define enrollment data
         data = {
             'student': self.student.pk,
-            'course': self.course.pk,
+            # 'course': self.course.pk,
+            'course': self.course.id,
         }
 
         # Test enrollment
         url = reverse('enrollment-list')
         response = self.client.post(url, data, format='json')
+        print("test_enrollment_authorized")
+        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['course'], self.course.pk)
 
@@ -257,7 +254,7 @@ class APITestCase(TestCase):
         # Authenticate as a student user
         self.client.credentials(
             HTTP_AUTHORIZATION=f'Bearer {self.student_access_token}')
-        # Define feedback data
+
         data = {
             'course': self.course.id,
             'feedback': 'Great course!',
@@ -272,14 +269,8 @@ class APITestCase(TestCase):
         # Follow the redirect
         redirect_url = response['Location']
         response = self.client.get(redirect_url)
-        # Now assert on the final response after the redirect
-        # Or whatever you expect
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Further assertions on the response data
-        # response = self.client.post(url, data, format='json')
-        # self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # self.assertEqual(response.data['rating'], 5)
-        # self.assertEqual(response.data['comment'], 'Great course!')
 
     def test_submit_feedback_unauthorized(self):
         url = reverse('feedback-list')
