@@ -10586,79 +10586,98 @@ blockquote {
 }
 
 #mainNav {
-  position: absolute;
+  position: relative;
+  /* Changed from absolute to relative for better positioning */
   top: 0;
   left: 0;
   right: 0;
   z-index: 1030;
   border-bottom: 1px solid #dee2e6;
-  background-color: #fff;
+  background-color: #ffffff;
+  /* Default background color */
   font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  transition: background-color 0.2s;
+  /* Smooth background color transition */
+  margin-bottom: 1rem;
+  /* Margin bottom for spacing */
 }
+
 #mainNav .navbar-brand {
   font-weight: 800;
 }
+
 #mainNav .navbar-toggler {
   font-size: 0.75rem;
   font-weight: 800;
   padding: 0.75rem;
   text-transform: uppercase;
 }
-#mainNav .navbar-nav > li.nav-item > a.nav-link {
+
+#mainNav .navbar-nav>li.nav-item>a.nav-link {
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.0625em;
   text-transform: uppercase;
 }
+
 @media (min-width: 992px) {
   #mainNav {
     border-bottom: 1px solid transparent;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.9);
+    /* Semi-transparent background for larger screens */
   }
+
   #mainNav .navbar-brand {
-    color: #fff;
+    color: #000;
+    /* Dark text color for visibility */
   }
-  #mainNav .navbar-brand:focus, #mainNav .navbar-brand:hover {
-    color: rgba(255, 255, 255, 0.8);
+
+  #mainNav .navbar-brand:focus,
+  #mainNav .navbar-brand:hover {
+    color: rgba(0, 0, 0, 0.8);
   }
-  #mainNav .navbar-nav > li.nav-item > a.nav-link {
-    color: #fff;
+
+  #mainNav .navbar-nav>li.nav-item>a.nav-link {
+    color: #000;
   }
-  #mainNav .navbar-nav > li.nav-item > a.nav-link:focus, #mainNav .navbar-nav > li.nav-item > a.nav-link:hover {
-    color: rgba(255, 255, 255, 0.8);
+
+  #mainNav .navbar-nav>li.nav-item>a.nav-link:focus,
+  #mainNav .navbar-nav>li.nav-item>a.nav-link:hover {
+    color: rgba(0, 0, 0, 0.8);
   }
 }
+
 @media (min-width: 992px) {
-  #mainNav {
-    transition: background-color 0.2s;
-    /* Force Hardware Acceleration in WebKit */
-    transform: translate3d(0, 0, 0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-  }
   #mainNav.is-fixed {
-    /* when the user scrolls down, we hide the header right above the viewport */
     position: fixed;
-    top: -83px;
+    top: 0;
+    /* Stick at the top */
     transition: transform 0.2s;
     border-bottom: 1px solid white;
     background-color: rgba(255, 255, 255, 0.9);
   }
+
   #mainNav.is-fixed .navbar-brand {
     color: #212529;
   }
-  #mainNav.is-fixed .navbar-brand:focus, #mainNav.is-fixed .navbar-brand:hover {
+
+  #mainNav.is-fixed .navbar-brand:focus,
+  #mainNav.is-fixed .navbar-brand:hover {
     color: #0085A1;
   }
-  #mainNav.is-fixed .navbar-nav > li.nav-item > a {
+
+  #mainNav.is-fixed .navbar-nav>li.nav-item>a {
     color: #212529;
   }
-  #mainNav.is-fixed .navbar-nav > li.nav-item > a:focus, #mainNav.is-fixed .navbar-nav > li.nav-item > a:hover {
+
+  #mainNav.is-fixed .navbar-nav>li.nav-item>a:focus,
+  #mainNav.is-fixed .navbar-nav>li.nav-item>a:hover {
     color: #0085A1;
   }
+
   #mainNav.is-visible {
-    /* if the user changes the scrolling direction, we show the header */
-    transform: translate3d(0, 100%, 0);
+    transform: translate3d(0, 0, 0);
+    /* Ensure the navbar is visible when scrolling back up */
   }
 }
 

@@ -1,26 +1,43 @@
-{% extends 'base.html' %} {% block content %}
-<h1>Search Results</h1>
+{% extends 'base.html' %}
 
-{% if users %}
-<ul id="user-search-results">
-  {% for user in users %}
-  <li class="user-card">
-    {# Add a class for styling #} {% if user.profile_picture %}
-    <img
-      src="{{ user.profile_picture.url }}"
-      alt="{{ user.username }}'s profile picture"
-      class="profile-pic"
-      width="200"
-    />
-  </br>
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Search Results</h1>
+
+    {% if users %}
+    <ul class="list-unstyled">
+        {% for user in users %}
+        <li class="user-card mb-3 p-3 border rounded">
+            {% if user.profile_picture %}
+            <div class="d-flex align-items-center mb-3">
+                <img
+                    src="{{ user.profile_picture.url }}"
+                    alt="{{ user.username }}'s profile picture"
+                    class="profile-pic rounded-circle me-3"
+                    width="100"
+                />
+                <div>
+                    <a href="{% url 'view_other_user_profile' user_id=user.id %}" class="h5 mb-1">
+                        {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
+                    </a>
+                    {% if user.elearnuser %}
+                    <p class="mb-0 text-muted">- {{ user.elearnuser.user_type }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <a href="{% url 'view_other_user_profile' user_id=user.id %}">
+              {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
+            </a>
+            {% if user.elearnuser %}
+            <p class="mb-0 text-muted">- {{ user.elearnuser.user_type }}</p>
+            {% endif %}
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No users found.</p>
     {% endif %}
-    <a href="{% url 'view_other_user_profile' user_id=user.id %}"> 
-      {{ user.username }} ({{ user.first_name }} {{ user.last_name }})
-    </a>
-    {% if user.elearnuser %} - {{ user.elearnuser.user_type }} {% endif %}
-  </li>
-  {% endfor %}
-</ul>
-{% else %}
-<p>No users found.</p>
-{% endif %} {% endblock %}
+</div>
+{% endblock %}

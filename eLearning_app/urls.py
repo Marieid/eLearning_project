@@ -46,7 +46,10 @@ urlpatterns = [
     path('search/', views.search_users, name='search_users'),
     path('user/<int:user_id>/', views.user_profile_detail,
          name='user_profile_detail'),
-    path('user/<int:user_id>/view/', views.view_other_user_profile,
+#     path('user/<int:user_id>/view/', views.view_other_user_profile,
+#          name='view_other_user_profile'),
+    # urls.py
+    path('user/<int:user_id>/', views.view_other_user_profile,
          name='view_other_user_profile'),
 
 ]
