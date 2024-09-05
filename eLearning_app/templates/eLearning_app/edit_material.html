@@ -1,10 +1,23 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Edit material</h2>
-    <form method="post" enctype="multipart/form-data">  {# Add enctype for file uploads #}
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Submit changes</button>
-    </form>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Edit Material</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card p-4">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.as_p }}
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">Submit Changes</button>
+                        <a href="{% url 'course_detail' course_id=form.instance.course.id %}" class="btn btn-secondary ms-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

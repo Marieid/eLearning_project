@@ -1,62 +1,80 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>{{ course.name }}</h2>
+<div class="container mt-5">
+    <h2 class="mb-4">{{ course.name }}</h2>
     <p>{{ course.description }}</p>
 
-    <ul>
+    <!-- Feedback Submission Section -->
     {% if user.is_authenticated and user.elearnuser.user_type == 'student' and user.elearnuser in enrolled_students %}
-        <h3>Submit Feedback</h3>
-        <form method="post" action="{% url 'submit_feedback' course.id %}"> 
-            {% csrf_token %}
-            {{ feedback_form.as_p }}
-            <button type="submit">Submit Feedback</button>
-        </form>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>Submit Feedback</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'submit_feedback' course.id %}">
+                {% csrf_token %}
+                {{ feedback_form.as_p }}
+                <button type="submit" class="btn btn-primary">Submit Feedback</button>
+            </form>
+        </div>
+    </div>
     {% endif %}
-    </ul>
 
+    <!-- Course Management for Teachers -->
     {% if user.is_authenticated and user.elearnuser.user_type == 'teacher' and course.teacher == user.elearnuser %}
-        <a href="{% url 'edit_course' course.id %}">Edit Course</a> | 
-        <a href="{% url 'delete_course' course.id %}" onclick="return confirm('Are you sure you want to delete this course?')">Delete Course</a> | 
+    <div class="d-flex mb-4">
+        <a href="{% url 'edit_course' course.id %}" class="btn btn-outline-secondary me-2">Edit Course</a>
+        <a href="{% url 'delete_course' course.id %}" class="btn btn-outline-danger me-2" onclick="return confirm('Are you sure you want to delete this course?')">Delete Course</a>
         {% if course.enrollment_status == 'open' %}
-            <a href="{% url 'close_enrollment' course.id %}" onclick="return confirm('Are you sure you want to close enrollment for this course?')">Close Enrollment</a>
-        {% else %} 
-            <a href="{% url 'open_enrollment' course.id %}" onclick="return confirm('Are you sure you want to reopen enrollment for this course?')">Reopen Enrollment</a> 
+        <a href="{% url 'close_enrollment' course.id %}" class="btn btn-warning me-2" onclick="return confirm('Are you sure you want to close enrollment for this course?')">Close Enrollment</a>
+        {% else %}
+        <a href="{% url 'open_enrollment' course.id %}" class="btn btn-success me-2" onclick="return confirm('Are you sure you want to reopen enrollment for this course?')">Reopen Enrollment</a>
         {% endif %}
-        | <a href="{% url 'add_material' course.id %}">Add Material</a> 
-    {% elif user.is_authenticated and user.elearnuser.user_type == 'student' and user.elearnuser in enrolled_students %}
-        <a href="{% url 'add_material' course.id %}">Add Material</a> 
+        <a href="{% url 'add_material' course.id %}" class="btn btn-info">Add Material</a>
+    </div>
     {% endif %}
 
+    <!-- Materials Section -->
     <h3>Materials</h3>
-    <ul>
+    <ul class="list-group mb-4">
         {% for material in materials %}
-            <li>
-                <a href="{{ material.file.url }}">{{ material.name }}</a> - {{ material.description }}
-                {% if user.is_authenticated and material.uploader == user.elearnuser %} 
-                    | <a href="{% url 'edit_material' course.id material.id %}">Edit</a> | 
-                    <a href="{% url 'delete_material' course.id material.id %}" onclick="return confirm('Are you sure you want to delete this material?')">Delete</a>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <a href="{{ material.file.url }}" class="text-decoration-none">{{ material.name }}</a>
+                <p class="mb-0">{{ material.description }}</p>
+            </div>
+            <div>
+                {% if user.is_authenticated and material.uploader == user.elearnuser %}
+                <a href="{% url 'edit_material' course.id material.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                <a href="{% url 'delete_material' course.id material.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this material?')">Delete</a>
                 {% endif %}
-            </li>
+            </div>
+        </li>
         {% endfor %}
     </ul>
 
+    <!-- Enrolled Students Section -->
     <h3>Enrolled Students</h3>
-    <ul>
+    <ul class="list-group mb-4">
         {% for student in enrolled_students %}
-            <li>{{ student.user.first_name }} {{ student.user.last_name }}</li> 
-        {% endfor %}
-    </ul>
-    <h3>Feedback for this Course</h3>
-    <ul>
-        {% for feedback in course.feedback_set.all %}
-            <li>
-                Student: {{ feedback.student.user.username }}<br>
-                Rating: {{ feedback.rating }}<br>
-                Comment: {{ feedback.comment }}
-            </li>
+        <li class="list-group-item">{{ student.user.first_name }} {{ student.user.last_name }}</li>
         {% endfor %}
     </ul>
 
-    <a href="{% url 'course_list' %}">All Courses</a> 
+    <!-- Feedback Section -->
+    <h3>Feedback for this Course</h3>
+    <ul class="list-group mb-4">
+        {% for feedback in course.feedback_set.all %}
+        <li class="list-group-item">
+            <strong>Student:</strong> {{ feedback.student.user.username }}<br>
+            <strong>Rating:</strong> {{ feedback.rating }}<br>
+            <strong>Comment:</strong> {{ feedback.comment }}
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Back to Course List Link -->
+    <a href="{% url 'course_list' %}" class="btn btn-outline-primary">All Courses</a>
+</div>
 {% endblock %}

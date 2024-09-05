@@ -1,44 +1,56 @@
-{% extends 'base.html' %} {% block content %}
-<h2>User Profile</h2>
+{% extends 'base.html' %}
 
-<h3>{{ user.first_name }} {{ user.last_name }}</h3>
+{% block content %}
+    <div class="container mt-5">
+        <h2 class="mb-4">User Profile</h2>
 
-{% if user.profile_picture %}
-<img src="{{ user.profile_picture.url }}" alt="Profile Picture" width="200" />
-{% else %}
-<p>No profile picture yet.</p>
-{% endif %}
+        <div class="mb-4">
+            <h3>{{ user.first_name }} {{ user.last_name }}</h3>
 
-<p>Username: {{ user.username }}</p>
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="img-fluid rounded-circle" width="200" />
+            {% else %}
+                <p>No profile picture yet.</p>
+            {% endif %}
 
-{% if user.elearnuser.user_type == 'student' %}
-<h3>Enrolled Courses</h3>
-<ul>
-  {% for course in user.elearnuser.enrolled_courses.all %}
-  <li>
-    <a href="{% url 'course_detail' course.id %}">{{ course.name }}</a>
-  </li>
-  {% endfor %}
-</ul>
+            <p><strong>Username:</strong> {{ user.username }}</p>
+        </div>
 
-{% elif user.elearnuser.user_type == 'teacher' %}
-<h3>Courses Taught</h3>
-<ul>
-  {% for course in courses_taught %}
-  <li>
-    <a href="{% url 'course_detail' course.id %}">{{ course.name }}</a>
-  </li>
-  {% endfor %}
-</ul>
-{% endif %}
+        {% if user.elearnuser.user_type == 'student' %}
+            <div class="mb-4">
+                <h3>Enrolled Courses</h3>
+                <ul class="list-group">
+                    {% for course in user.elearnuser.enrolled_courses.all %}
+                        <li class="list-group-item">
+                            <a href="{% url 'course_detail' course.id %}" class="text-decoration-none">{{ course.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        
+        {% elif user.elearnuser.user_type == 'teacher' %}
+            <div class="mb-4">
+                <h3>Courses Taught</h3>
+                <ul class="list-group">
+                    {% for course in courses_taught %}
+                        <li class="list-group-item">
+                            <a href="{% url 'course_detail' course.id %}" class="text-decoration-none">{{ course.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
 
-<h3>Status Updates</h3>
-<ul id="status-updates-list">
-  {% for status_update in user.statusupdate_set.all %} {% include
-  'eLearning_app/status_update.html' %} {% endfor %}
-</ul>
+        <div class="mb-4">
+            <h3>Status Updates</h3>
+            <ul class="list-group" id="status-updates-list">
+                {% for status_update in user.statusupdate_set.all %}
+                    {% include 'eLearning_app/status_update.html' %}
+                {% endfor %}
+            </ul>
+        </div>
 
-<!-- Link to the chat rooms page -->
-<a href="{% url 'chat_rooms' %}">Go to Chat Rooms</a>
-
+        <!-- Link to the chat rooms page -->
+        <a href="{% url 'chat_rooms' %}" class="btn btn-primary">Go to Chat Rooms</a>
+    </div>
 {% endblock %}

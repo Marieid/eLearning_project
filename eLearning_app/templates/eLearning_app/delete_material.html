@@ -1,10 +1,24 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Delete material</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Delete</button>
-    </form>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Delete Material</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <h5>Are you sure you want to delete this material?</h5>
+                    </div>
+                    {{ form.as_p }}
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                        <a href="{% url 'profile' %}" class="btn btn-secondary ms-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -1,10 +1,14 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Close Enrollment for: {{ course.name }}</h2>
-    <p>Are you sure you want to close enrollment for this course? New students will not be able to enroll.</p>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">Close Enrollment</button>
-    </form>
+    <div class="container mt-5">
+        <h2 class="mb-4">Close Enrollment for: {{ course.name }}</h2>
+        <p class="mb-4">Are you sure you want to close enrollment for this course? New students will not be able to enroll.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Close Enrollment</button>
+            <a href="{% url 'course_detail' course.id %}" class="btn btn-secondary ms-2">Cancel</a>
+        </form>
+    </div>
 {% endblock %}

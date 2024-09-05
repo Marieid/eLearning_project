@@ -1,10 +1,73 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Edit Profile</h2>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Update Profile</button>
-    </form>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Edit Profile</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card p-4">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.non_field_errors }}
+
+                        <!-- Render all fields except the profile picture -->
+                        <div class="mb-3">
+                            {{ form.first_name.label_tag }} {{ form.first_name }}
+                            {{ form.first_name.errors }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.last_name.label_tag }} {{ form.last_name }}
+                            {{ form.last_name.errors }}
+                        </div>
+
+                        <div class="mb-4"> <!-- Increased margin-bottom -->
+                            {{ form.email.label_tag }} {{ form.email }}
+                            {{ form.email.errors }}
+                        </div>
+
+                        <!-- Profile Picture Field (custom) -->
+                        <div class="mb-4">
+                            <label for="id_profile_picture" class="form-label">Profile Picture</label>
+                            <div class="profile-picture-container">
+                                {% if form.instance.profile_picture %}
+                                    <img id="profile-picture-preview" src="{{ form.instance.profile_picture.url }}" alt="Profile Picture" class="img-fluid">
+                                {% else %}
+                                    <img id="profile-picture-preview" src="#" alt="Profile Picture" class="img-fluid" style="display: none;">
+                                {% endif %}
+                            </div>
+                            <input type="file" class="form-control mt-2" id="id_profile_picture" name="profile_picture" onchange="previewImage(event)">
+                            {{ form.profile_picture.errors }}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                        <a href="{% url 'profile' %}" class="btn btn-secondary ms-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImage(event) {
+        const input = event.target;
+        const file = input.files[0];
+        const preview = document.getElementById('profile-picture-preview');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        } else {
+            preview.src = '#';
+            preview.style.display = 'none';
+        }
+    }
+</script>
 {% endblock %}
