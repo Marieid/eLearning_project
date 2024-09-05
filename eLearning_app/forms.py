@@ -15,13 +15,12 @@ class StudentRegistrationForm(UserCreationForm):
     def clean_profile_picture(self):
         profile_picture = self.cleaned_data.get('profile_picture')
         if profile_picture:
-            # Check file type (for allowed image types)
-            if not profile_picture.content_type.startswith('image/'):
+            # Checks file extension (for allowed image types)
+            if not profile_picture.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
                 raise forms.ValidationError(
                     "Please upload a valid image file.")
 
-            # Check file size (limit can be adjusted as needed)
-            if profile_picture.size > 1024 * 1024:  # 1MB limit
+            if profile_picture.size > 2.5 * 1024 * 1024:
                 raise forms.ValidationError(
                     "Image file too large (maximum 1MB).")
 
@@ -32,7 +31,7 @@ class StudentRegistrationForm(UserCreationForm):
         if commit:
             user.save()
             elearnUser.objects.create(user=user, user_type='student')
-            # Add the user to the 'students' group
+            # Adds the user to the 'students' group
             students_group = Group.objects.get(name='Students')
             user.groups.add(students_group)
         return user
@@ -47,13 +46,13 @@ class TeacherRegistrationForm(UserCreationForm):
     def clean_profile_picture(self):
         profile_picture = self.cleaned_data.get('profile_picture')
         if profile_picture:
-            # Check file type (for allowed image types)
-            if not profile_picture.content_type.startswith('image/'):
+            # Checks file extension (for allowed image types)
+            if not profile_picture.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
                 raise forms.ValidationError(
                     "Please upload a valid image file.")
 
-            # Check file size (limit can be adjusted as needed)
-            if profile_picture.size > 1024 * 1024:  # 1MB limit
+            # Checks file size (limit can be adjusted as needed)
+            if profile_picture.size > 2.5 * 1024 * 1024:
                 raise forms.ValidationError(
                     "Image file too large (maximum 1MB).")
 
@@ -65,13 +64,13 @@ class TeacherRegistrationForm(UserCreationForm):
             user.save()
             elearn_user = elearnUser.objects.create(
                 user=user, user_type='teacher')
-            # Add the user to the 'teachers' group
+            # Adds the user to the 'teachers' group
             try:
                 teachers_group = Group.objects.get(name='Teachers')
                 user.groups.add(teachers_group)
-            except:
-                message.error(request, 'New user ' +
-                              elearn_user.name + ' was not added to a group')
+            except Group.DoesNotExist:
+                # Handles the case where group does not exist
+                pass
         return user
 
 
@@ -79,17 +78,23 @@ class UserProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email', 'profile_picture']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'profile_picture': forms.ClearableFileInput(attrs={'class': 'form-control'})
+        }
 
     def clean_profile_picture(self):
         profile_picture = self.cleaned_data.get('profile_picture')
         if profile_picture:
-            # Check file type (for allowed image types)
-            if not profile_picture.content_type.startswith('image/'):
+            # Checks file extension (for allowed image types)
+            if not profile_picture.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
                 raise forms.ValidationError(
                     "Please upload a valid image file.")
 
-            # Check file size (limit can be adjusted as needed)
-            if profile_picture.size > 1024 * 1024:  # 1MB limit
+            # Checks file size (limit can be adjusted as needed)
+            if profile_picture.size > 2.5 * 1024 * 1024:  # 1MB limit
                 raise forms.ValidationError(
                     "Image file too large (maximum 1MB).")
 
@@ -131,6 +136,9 @@ class StatusUpdateForm(forms.ModelForm):
     class Meta:
         model = StatusUpdate
         fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={'class': 'form-control'})
+        }
 
 
 class ChatRoomForm(forms.ModelForm):

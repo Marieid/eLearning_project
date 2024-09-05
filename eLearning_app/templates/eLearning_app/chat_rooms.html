@@ -1,16 +1,24 @@
 {% extends 'base.html' %}
-{% block content %}
-<h3>Chat Rooms</h3>
-<ul>
-  {% for chat_room in chat_rooms %}
-  <li><a href="{% url 'chat_room_detail' chat_room.chat_name %}">{{ chat_room.chat_name }}</a></li>
-  {% endfor %}
-</ul>
 
-<h3>Create a New Chat Room</h3>
-<form method="post" action="{% url 'chat_rooms' %}">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Create</button>
-</form>
+{% block content %}
+<div class="container mt-5">
+    <h3 class="mb-4">Chat Rooms</h3>
+
+    <ul class="list-group mb-4">
+        {% for chat_room in chat_rooms %}
+        <li class="list-group-item">
+            <a href="{% url 'chat_room_detail' chat_room.chat_name %}">{{ chat_room.chat_name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <h3 class="mb-3">Create a New Chat Room</h3>
+    <form method="post" action="{% url 'chat_rooms' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.as_p }}
+        </div>
+        <button type="submit" class="btn btn-primary">Create</button>
+    </form>
+</div>
 {% endblock %}

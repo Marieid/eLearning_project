@@ -173,14 +173,25 @@ def edit_course(request, course_id):
         return render(request, 'eLearning_app/edit_course.html', {'form': form, 'course': course})
 
 
-@ login_required
-@ permission_required('eLearning_app.delete_course')
+@login_required
+@permission_required('eLearning_app.delete_course')
 def delete_course(request, course_id):
     course = get_object_or_404(Course, id=course_id)
+
+    # Checks if the user is the teacher of the course
     if course.teacher != request.user.elearnuser:
         messages.error(
             request, "You are not authorized to delete this course.")
         return redirect('course_detail', course_id=course.id)
+
+    if request.method == 'POST':
+        course.delete()
+        messages.success(request, 'Course deleted successfully!')
+        # Redirect to course list
+        return redirect('course_list')
+
+    # If GET request, render confirmation page
+    return render(request, 'eLearning_app/delete_course.html', {'course': course})
 
 
 @ permission_required('eLearning_app.view_course')
@@ -298,7 +309,7 @@ def delete_material(request, course_id, material_id):
         messages.success(request, 'Material deleted successfully!')
         return redirect('course_detail', course_id=course_id)
 
-    return render(request, 'eLearning_app/delete_material.html', {'material': material})
+    return render(request, 'eLearning_app/delete_material.html', {'material': material, 'course_id': course_id})
 
 
 @login_required

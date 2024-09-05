@@ -1,10 +1,23 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Edit Course: {{ course.name }}</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }} 
-        <button type="submit">Update Course</button>
-    </form>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Edit Course: {{ course.name }}</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.as_p }}
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">Update Course</button>
+                        <a href="{% url 'course_detail' course_id=course.id %}" class="btn btn-secondary ms-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -1,5 +1,43 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Welcome to the eLearning App!</h1>
-    {% endblock %}
+<div class="container mt-5">
+    <div class="jumbotron">
+        <h1 class="display-4">Welcome to the eLearning Platform!</h1>
+        <p class="lead">Your gateway to a world of knowledge and interaction. Whether you're a student looking to enhance your skills or a teacher sharing your expertise, our platform offers a variety of features to support your educational journey.</p>
+        <hr class="my-4">
+        <p>Explore our latest courses, interact with peers, and manage your learning experience efficiently.</p>
+        <a class="btn btn-primary btn-lg" href="{% url 'course_list' %}" role="button">Explore Courses</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">For Students</h5>
+                    <p class="card-text">Enroll in courses, post status updates, and provide feedback on your courses.</p>
+                    <a href="{% url 'register_student' %}" class="btn btn-primary">Register as Student</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">For Teachers</h5>
+                    <p class="card-text">Create and manage courses, upload materials, and interact with students.</p>
+                    <a href="{% url 'register_teacher' %}" class="btn btn-primary">Register as Teacher</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Get Started</h5>
+                    <p class="card-text">Log in if you already have an account.</p>
+                    <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

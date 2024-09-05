@@ -1,15 +1,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Available Courses</h2>
-    <ul>
-        {% for course in courses %}
-            <li>
-                <a href="{% url 'course_detail' course.id %}">{{ course.name }}</a>
-                {% if user.is_authenticated and user.elearnuser.user_type == 'student' and course not in enrolled_courses %} 
-                    <a href="{% url 'enroll_in_course' course.id %}">Enroll</a>
-                {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Available Courses</h2>
+        <ul class="list-group">
+            {% for course in courses %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <a href="{% url 'course_detail' course.id %}" class="text-decoration-none">{{ course.name }}</a>
+                    {% if user.is_authenticated and user.elearnuser.user_type == 'student' and course not in enrolled_courses %} 
+                        <a href="{% url 'enroll_in_course' course.id %}" class="btn btn-primary btn-sm">Enroll</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
 {% endblock %}

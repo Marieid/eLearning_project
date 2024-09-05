@@ -1,9 +1,45 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <title>eLearning App</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'eLearning_app/assets/favicon.ico' %}" />
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="{% static 'eLearning_app/css/styles.css' %}" rel="stylesheet" />
 </head>
 <body>
+    <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+        <div class="container px-4 px-lg-5">
+            <a class="navbar-brand" href="{% url 'index' %}">eLearning App</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="{% url 'profile' %}">Profile</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="{% url 'course_list' %}">Courses</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="{% url 'chat_rooms' %}">Chat Rooms</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="{% url 'logout' %}">Logout</a></li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="{% url 'login' %}">Login</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="{% url 'register_student' %}">Register as Student</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="{% url 'register_teacher' %}">Register as Teacher</a></li>
+                    {% endif %}
+                </ul>
+                <!-- Search Bar -->
+                <form class="d-flex ms-3" action="{% url 'search_users' %}" method="get">
+                    <input class="form-control me-2" type="search" name="q" placeholder="Search for users..." aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+            </div>
+        </div>
+    </nav>
 
     {% if messages %}
         <ul class="messages">
@@ -14,25 +50,13 @@
     {% endif %}
 
     <div class="container">
-        {% if user.is_authenticated %}
-            <p>Welcome, {{ user.username }}!</p>
-            {% if user.is_student %}
-                <p>You are a student.</p>
-            {% elif user.is_teacher %}
-                <p>You are a teacher.</p>
-            {% endif %}
-        {% else %}
-            <p><a href="{% url 'login' %}">Login</a> | <a href="{% url 'register_student' %}">Register as Student</a> | <a href="{% url 'register_teacher' %}">Register as Teacher</a></p>
-        {% endif %}
-        <form action="{% url 'search_users' %}" method="get">
-            <input type="text" name="q" placeholder="Search for users...">
-            <button type="submit">Search</button>
-        </form>
         {% block content %}
         {% endblock %}
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>  {# Include jQuery here #}
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'eLearning_app/js/scripts.js' %}"></script>
     {% block scripts %}
     {% endblock %}
 </body>

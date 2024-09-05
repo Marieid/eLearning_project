@@ -1,56 +1,70 @@
-{% extends 'base.html' %} {% block content %}
-<h3>Chat Room: {{ room_name }}</h3>
+{% extends 'base.html' %}
 
-<div id="chat-log">
-  <!-- Chat messages will go here -->
-  {% for message in messages %}
-  <p><strong>{{ message.user.username }}:</strong> {{ message.content }}</p>
-  {% endfor %}
+{% block content %}
+<div class="container mt-5">
+  <h3 class="mb-4">Chat Room: {{ room_name }}</h3>
+
+  <!-- Chat Log Section -->
+  <div id="chat-log" class="border rounded p-3 mb-4" style="height: 300px; overflow-y: scroll;">
+    <!-- Chat messages will be dynamically added here -->
+    {% for message in messages %}
+    <p><strong>{{ message.user.username }}:</strong> {{ message.content }}</p>
+    {% endfor %}
+  </div>
+
+  <!-- Chat Message Form -->
+  <form id="chat-message-form" class="d-flex">
+    <input
+      type="text"
+      id="chat-message-input"
+      class="form-control me-2"
+      autocomplete="off"
+      placeholder="Type your message..."
+      required
+    />
+    <button type="submit" class="btn btn-primary">Send</button>
+  </form>
 </div>
 
-<form id="chat-message-form">
-  <input
-    type="text"
-    id="chat-message-input"
-    autocomplete="off"
-    placeholder="Type your message..."
-  />
-  <button type="submit">Send</button>
-</form>
-
 <script>
-  var roomName = "{{ room_name }}";
-  var chatSocket = new WebSocket(
-    "ws://" + window.location.host + "/chat/" + roomName + "/"
-  );
-  console.log("chatSocket:", chatSocket);
-  // Handle connection events
-  chatSocket.onopen = () => {
-    console.log("WebSocket connection opened");
-  };
-  chatSocket.onmessage = function (e) {
-    console.log("onmessage");
-    var data = JSON.parse(e.data);
-    var message = data.message;
-    var username = data.username;
+  document.addEventListener('DOMContentLoaded', function() {
+    var roomName = "{{ room_name }}";
+    var chatLog = document.querySelector("#chat-log");
+    var chatSocket = new WebSocket("ws://" + window.location.host + "/chat/" + roomName + "/");
 
-    document.querySelector("#chat-log").innerHTML +=
-      "<p><strong>" + username + ":</strong> " + message + "</p>";
-  };
+    // Handle connection events
+    chatSocket.onopen = function() {
+      console.log("WebSocket connection opened");
+    };
 
-  document.querySelector("#chat-message-form").onsubmit = function (e) {
-    e.preventDefault();
-    var messageInputDom = document.querySelector("#chat-message-input");
-    var message = messageInputDom.value;
-    chatSocket.send(
-      JSON.stringify({
-        message: {
-          message: message,
-        },
-      })
-    );
-    messageInputDom.value = "";
-  };
+    chatSocket.onmessage = function(e) {
+      var data = JSON.parse(e.data);
+      var message = data.message;
+      var username = data.username;
+
+      // Append the new message to the chat log
+      var newMessage = document.createElement('p');
+      newMessage.innerHTML = "<strong>" + username + ":</strong> " + message;
+      chatLog.appendChild(newMessage);
+
+      // Auto-scroll to the latest message
+      chatLog.scrollTop = chatLog.scrollHeight;
+    };
+
+    // Handle sending a new message
+    document.querySelector("#chat-message-form").onsubmit = function(e) {
+      e.preventDefault();
+      var messageInputDom = document.querySelector("#chat-message-input");
+      var message = messageInputDom.value.trim();
+
+      if (message.length > 0) {
+        chatSocket.send(JSON.stringify({
+          'message': message
+        }));
+        messageInputDom.value = ""; // Clear the input field
+      }
+    };
+  });
 </script>
 
 {% endblock %}
