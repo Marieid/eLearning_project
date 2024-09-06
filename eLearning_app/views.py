@@ -477,7 +477,7 @@ def search_users(request):
             Q(user__last_name__iexact=query)
         )
 
-        # Combine results and remove duplicates
+        # Combines results and remove duplicates
         users = list(users) + [eu.user for eu in elearn_users]
         users = list({u.id: u for u in users}.values())
     else:
