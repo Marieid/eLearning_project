@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -25,7 +26,7 @@ SECRET_KEY = 'qx^p$#6@*kcyef%dw*r!xpmrbj&af$x8x)mwdqhbw!1rhp(!zz'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 AUTH_USER_MODEL = 'eLearning_app.User'
 LOGIN_URL = '/login/'
@@ -38,12 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'rest_framework',
     'rest_framework.authtoken',
     'eLearning_app',
-    'channels',
     'django_extensions',
     'widget_tweaks',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -84,25 +86,19 @@ TEMPLATES = [
     },
 ]
 
-# Use ASGI instead of WSGI
+# Using ASGI instead of WSGI
 ASGI_APPLICATION = 'eLearning_project.asgi.application'
 
 # For in-memory channel layer (development)
 CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [("127.0.0.1", 6379)],
+        },
     },
 }
 
-# For Redis channel layer (production or more robust message handling)
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             "hosts": [('127.0.0.1', 6379)],  # Replace with your Redis server details
-#         },
-#     },
-# }
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
