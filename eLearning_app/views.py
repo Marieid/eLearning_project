@@ -150,6 +150,7 @@ def course_detail(request, course_id):
         'materials': materials,
         'enrolled_students': enrolled_students,
         'feedback_form': FeedbackForm(),
+        'teacher': course.teacher,  # Add this line
     }
     return render(request, 'eLearning_app/course_detail.html', context)
 

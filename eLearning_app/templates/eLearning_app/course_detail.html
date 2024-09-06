@@ -3,6 +3,8 @@
 {% block content %}
 <div class="container mt-5">
     <h2 class="mb-4">{{ course.name }}</h2>
+    <p><strong>Course Code:</strong> {{ course.code }}</p> <!-- Added course code -->
+    <p><strong>Teacher:</strong> <a href="{% url 'view_other_user_profile' course.teacher.user.id %}">{{ course.teacher.user.first_name }} {{ course.teacher.user.last_name }}</a></p>
     <p>{{ course.description }}</p>
 
     <!-- Feedback Submission Section -->
