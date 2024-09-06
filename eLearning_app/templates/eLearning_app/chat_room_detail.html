@@ -6,7 +6,7 @@
 
   <!-- Chat Log Section -->
   <div id="chat-log" class="border rounded p-3 mb-4" style="height: 300px; overflow-y: scroll;">
-    <!-- Chat messages will be dynamically added here -->
+    <!-- Chat messages are dynamically added here -->
     {% for message in messages %}
     <p><strong>{{ message.user.username }}:</strong> {{ message.content }}</p>
     {% endfor %}
@@ -68,7 +68,8 @@
         chatSocket.send(JSON.stringify({
           'message': message
         }));
-        messageInputDom.value = ""; // Clear the input field
+        // Clears the message input field
+        messageInputDom.value = ""; 
       }
     };
   });
