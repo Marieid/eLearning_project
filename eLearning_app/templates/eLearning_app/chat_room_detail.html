@@ -6,7 +6,7 @@
 
   <!-- Chat Log Section -->
   <div id="chat-log" class="border rounded p-3 mb-4" style="height: 300px; overflow-y: scroll;">
-    <!-- Chat messages will be dynamically added here -->
+    <!-- Chat messages are dynamically added here -->
     {% for message in messages %}
     <p><strong>{{ message.user.username }}:</strong> {{ message.content }}</p>
     {% endfor %}
@@ -30,7 +30,7 @@
   document.addEventListener('DOMContentLoaded', function() {
     var roomName = "{{ room_name }}";
     var chatLog = document.querySelector("#chat-log");
-    var chatSocket = new WebSocket("ws://" + window.location.host + "/chat/" + roomName + "/");
+    var chatSocket = new WebSocket("ws://" + window.location.host + "/ws/chat/" + roomName + "/");
 
     // Handle connection events
     chatSocket.onopen = function() {
@@ -51,6 +51,13 @@
       chatLog.scrollTop = chatLog.scrollHeight;
     };
 
+    chatSocket.onerror = function(e) {
+      console.error('WebSocket error: ', e);
+    };
+
+    chatSocket.onclose = function(e) {
+      console.log('WebSocket connection closed: ', e);
+    };
     // Handle sending a new message
     document.querySelector("#chat-message-form").onsubmit = function(e) {
       e.preventDefault();
@@ -61,7 +68,8 @@
         chatSocket.send(JSON.stringify({
           'message': message
         }));
-        messageInputDom.value = ""; // Clear the input field
+        // Clears the message input field
+        messageInputDom.value = ""; 
       }
     };
   });

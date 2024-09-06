@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.contrib.auth.models import AbstractUser
@@ -42,6 +43,8 @@ class Course(models.Model):
     end_date = models.DateField()
     enrollment_status = models.CharField(max_length=20, choices=[(
         'open', 'Open'), ('closed', 'Closed')], default='open')
+    blocked_students = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name='blocked_courses', blank=True)
 
     def __str__(self):
         return f"{self.code} - {self.name}"
@@ -138,3 +141,16 @@ def create_material_notification(sender, instance, created, **kwargs):
                 material=instance,
                 student=student
             )
+
+
+class BlockNotification(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    student = models.ForeignKey(
+        elearnUser, on_delete=models.CASCADE, limit_choices_to=Q(user_type='student'))
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    message = models.TextField()
+    read = models.BooleanField(default=False)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Blocked Notification for {self.student.user.username} in {self.course.name}"

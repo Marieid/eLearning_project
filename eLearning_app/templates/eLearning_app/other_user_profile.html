@@ -5,22 +5,22 @@
         <h2 class="mb-4">User Profile</h2>
 
         <div class="mb-4">
-            <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+            <h3>{{ profile_user.first_name }} {{ profile_user.last_name }}</h3>
 
-            {% if user.profile_picture %}
-                <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="img-fluid rounded-circle" width="200" />
+            {% if profile_user.profile_picture %}
+                <img src="{{ profile_user.profile_picture.url }}" alt="Profile Picture" class="img-fluid rounded-circle" width="200" />
             {% else %}
                 <p>No profile picture yet.</p>
             {% endif %}
 
-            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Username:</strong> {{ profile_user.username }}</p>
         </div>
 
-        {% if user.elearnuser.user_type == 'student' %}
+        {% if profile_user.elearnuser.user_type == 'student' %}
             <div class="mb-4">
                 <h3>Enrolled Courses</h3>
                 <ul class="list-group">
-                    {% for course in user.elearnuser.enrolled_courses.all %}
+                    {% for course in enrolled_courses %}
                         <li class="list-group-item">
                             <a href="{% url 'course_detail' course.id %}" class="text-decoration-none">{{ course.name }}</a>
                         </li>
@@ -28,7 +28,7 @@
                 </ul>
             </div>
         
-        {% elif user.elearnuser.user_type == 'teacher' %}
+        {% elif profile_user.elearnuser.user_type == 'teacher' %}
             <div class="mb-4">
                 <h3>Courses Taught</h3>
                 <ul class="list-group">
@@ -44,7 +44,7 @@
         <div class="mb-4">
             <h3>Status Updates</h3>
             <ul class="list-group" id="status-updates-list">
-                {% for status_update in user.statusupdate_set.all %}
+                {% for status_update in profile_user.statusupdate_set.all %}
                     {% include 'eLearning_app/status_update.html' %}
                 {% endfor %}
             </ul>

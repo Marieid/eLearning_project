@@ -1,7 +1,105 @@
-{% extends 'base.html' %} {% block content %}
-<h2>Register as a Teacher</h2>
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %} {{ form.as_p }}
-  <button type="submit">Register</button>
-</form>
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Register as a Teacher</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Username Field -->
+        <div class="mb-3">
+            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.username.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- First Name Field -->
+        <div class="mb-3">
+            <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.first_name.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Last Name Field -->
+        <div class="mb-3">
+            <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.last_name.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Email Field -->
+        <div class="mb-3">
+            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.email.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Profile Picture Field -->
+        <div class="mb-3">
+            <label for="{{ form.profile_picture.id_for_label }}" class="form-label">Profile Picture</label>
+            {{ form.profile_picture }}
+            {% if form.profile_picture.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.profile_picture.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Password Fields -->
+        <div class="mb-3">
+            <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.password1.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small class="form-text text-muted">
+                Your password must contain at least 8 characters, cannot be too similar to your other personal information, cannot be a commonly used password, and cannot be entirely numeric.
+            </small>
+        </div>
+
+        <div class="mb-3">
+            <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.password2.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Register</button>
+    </form>
+</div>
 {% endblock %}

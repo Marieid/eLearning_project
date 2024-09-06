@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container mt-5">
+        <h2 class="mb-4">Delete Chat Room</h2>
+        <p>Are you sure you want to delete the chat room "{{ chatroom.chat_name }}"?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Delete</button>
+            <a href="{% url 'chat_rooms' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+{% endblock %}

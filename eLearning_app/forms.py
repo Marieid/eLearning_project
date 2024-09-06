@@ -82,7 +82,7 @@ class UserProfileUpdateForm(forms.ModelForm):
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'profile_picture': forms.ClearableFileInput(attrs={'class': 'form-control'})
+            'profile_picture': forms.ClearableFileInput(attrs={'class': 'form-control', 'placeholder': 'Add your profile picture here'})
         }
 
     def clean_profile_picture(self):
@@ -105,7 +105,6 @@ class CourseCreationForm(forms.ModelForm):
     class Meta:
         model = Course
         fields = ['code', 'name', 'description', 'start_date', 'end_date']
-        # You can customize field widgets or add validation here if needed
     start_date = forms.DateField(
         widget=forms.DateInput(attrs={'placeholder': 'yyyy-mm-dd'}))
     end_date = forms.DateField(
@@ -126,10 +125,9 @@ class FeedbackForm(forms.ModelForm):
         model = Feedback
         fields = ['rating', 'comment']
 
-    # You can customize field widgets or add more validation here if needed
-    # For example, to make the rating field a dropdown:
     rating = forms.ChoiceField(
-        choices=[(i, i) for i in range(1, 6)])  # 1 to 5 rating scale
+        # 1 to 5 rating scale
+        choices=[(i, i) for i in range(1, 6)])
 
 
 class StatusUpdateForm(forms.ModelForm):
@@ -137,7 +135,7 @@ class StatusUpdateForm(forms.ModelForm):
         model = StatusUpdate
         fields = ['content']
         widgets = {
-            'content': forms.Textarea(attrs={'class': 'form-control'})
+            'content': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write your status update...'})
         }
 
 
@@ -145,3 +143,15 @@ class ChatRoomForm(forms.ModelForm):
     class Meta:
         model = ChatRoom
         fields = ['chat_name']
+
+
+class ChatRoomForm(forms.ModelForm):
+    class Meta:
+        model = ChatRoom
+        fields = ['chat_name']
+
+    def clean_chat_name(self):
+        chat_name = self.cleaned_data.get('chat_name')
+        if ' ' in chat_name:
+            raise forms.ValidationError("Chatroom name must be a single word.")
+        return chat_name
