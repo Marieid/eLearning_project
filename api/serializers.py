@@ -3,6 +3,7 @@ from eLearning_app.models import User, elearnUser, Course, Material, Feedback, S
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Serializer for the User model, including basic user information."""
     class Meta:
         model = User
         fields = ['id', 'username', 'first_name',
@@ -10,6 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ElearnUserSerializer(serializers.ModelSerializer):
+    """Serializer for the elearnUser model, including nested UserSerializer for user details."""
     user = UserSerializer()
 
     class Meta:
@@ -18,10 +20,11 @@ class ElearnUserSerializer(serializers.ModelSerializer):
 
 
 class CourseListSerializer(serializers.ModelSerializer):
+    """Serializer for listing courses, including teacher name and description."""
     teacher_name = serializers.CharField(
         source='teacher.user.get_full_name', read_only=True)
-    # Include description for more context
-    description = serializers.CharField(read_only=True)
+    description = serializers.CharField(
+        read_only=True)  # Provide course description
 
     class Meta:
         model = Course
@@ -30,6 +33,7 @@ class CourseListSerializer(serializers.ModelSerializer):
 
 
 class CourseDetailSerializer(serializers.ModelSerializer):
+    """Serializer for detailed course view, including teacher and student details."""
     teacher = ElearnUserSerializer(read_only=True)
     students = ElearnUserSerializer(many=True, read_only=True)
 
@@ -40,6 +44,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
 
 
 class StatusUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for status updates, including user details."""
     user = UserSerializer()
 
     class Meta:
@@ -48,6 +53,7 @@ class StatusUpdateSerializer(serializers.ModelSerializer):
 
 
 class ChatRoomSerializer(serializers.ModelSerializer):
+    """Serializer for chat rooms, including admin and members."""
     admin = UserSerializer()
     members = UserSerializer(many=True)
 
@@ -57,6 +63,7 @@ class ChatRoomSerializer(serializers.ModelSerializer):
 
 
 class EnrollmentSerializer(serializers.ModelSerializer):
+    """Serializer for course enrollments, linking students and courses."""
     student = serializers.PrimaryKeyRelatedField(
         queryset=elearnUser.objects.all())
     course = serializers.PrimaryKeyRelatedField(queryset=Course.objects.all())
@@ -67,6 +74,7 @@ class EnrollmentSerializer(serializers.ModelSerializer):
 
 
 class EnrollmentNotificationSerializer(serializers.ModelSerializer):
+    """Serializer for enrollment notifications, including course and user details."""
     course = CourseListSerializer()
     student = ElearnUserSerializer()
     teacher = ElearnUserSerializer()
@@ -77,20 +85,22 @@ class EnrollmentNotificationSerializer(serializers.ModelSerializer):
 
 
 class FeedbackSerializer(serializers.ModelSerializer):
+    """Serializer for feedback, including student name and course name."""
     student_name = serializers.CharField(
         source='student.user.get_full_name', read_only=True)
     course_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Feedback
-        fields = ['id', 'student_name', 'course_name',
-                  'rating', 'comment']
+        fields = ['id', 'student_name', 'course_name', 'rating', 'comment']
 
     def get_course_name(self, obj):
+        """Retrieve the name of the course for feedback."""
         return obj.course.name
 
 
 class MaterialSerializer(serializers.ModelSerializer):
+    """Serializer for materials, including course name and uploader details."""
     course_name = serializers.CharField(
         source='course.name', read_only=True)  # Include course name
     uploader_name = serializers.CharField(
@@ -105,6 +115,7 @@ class MaterialSerializer(serializers.ModelSerializer):
 
 
 class MaterialNotificationSerializer(serializers.ModelSerializer):
+    """Serializer for material notifications, including material and student details."""
     material = MaterialSerializer()
     student = ElearnUserSerializer()
 

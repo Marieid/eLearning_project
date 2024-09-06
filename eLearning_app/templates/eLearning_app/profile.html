@@ -79,12 +79,14 @@
 
     <h3>Notifications</h3>
     <ul class="list-group mb-4">
-        {% for notification in enrollment_notifications %}
-        <li class="list-group-item">
-            Student {{ notification.student.user }} has enrolled in {{ notification.course }}.
-            <a href="{% url 'mark_notification_as_read' notification.id %}" class="btn btn-sm btn-outline-secondary">Mark as Read</a>
-        </li>
-        {% endfor %}
+        {% if user.elearnuser.user_type == 'teacher' %}
+            {% for notification in enrollment_notifications %}
+            <li class="list-group-item">
+                Student {{ notification.student.user }} has enrolled in {{ notification.course }}.
+                <a href="{% url 'mark_notification_as_read' notification.id %}" class="btn btn-sm btn-outline-secondary">Mark as Read</a>
+            </li>
+            {% endfor %}
+        {% endif %}
         {% for notification in material_notifications %}
         <li class="list-group-item">
             New material '{{ notification.material.name }}' has been added to {{ notification.material.course }}.
