@@ -126,8 +126,7 @@ class FeedbackForm(forms.ModelForm):
         model = Feedback
         fields = ['rating', 'comment']
 
-    # You can customize field widgets or add more validation here if needed
-    # For example, to make the rating field a dropdown:
+
     rating = forms.ChoiceField(
         choices=[(i, i) for i in range(1, 6)])  # 1 to 5 rating scale
 
@@ -139,6 +138,12 @@ class StatusUpdateForm(forms.ModelForm):
         widgets = {
             'content': forms.Textarea(attrs={'class': 'form-control'})
         }
+
+
+class ChatRoomForm(forms.ModelForm):
+    class Meta:
+        model = ChatRoom
+        fields = ['chat_name']
 
 
 class ChatRoomForm(forms.ModelForm):

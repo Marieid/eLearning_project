@@ -118,10 +118,14 @@
 
     <h3>Chat Rooms</h3>
     <ul class="list-group mb-4">
-        {% for chat_room in user.chat_rooms.all %}
-        <li class="list-group-item">
-            <a href="{% url 'chat_room_detail' chat_room.chat_name %}" class="text-decoration-none">{{ chat_room.chat_name }}</a>
-        </li>
+        {% for chatroom in chat_rooms %}
+            <div class="chatroom">
+            <h3>{{ chatroom.chat_name }}</h3>
+            {% if user == chatroom.admin %}
+                <a href="{% url 'edit_chatroom' chatroom.id %}" class="btn btn-warning">Edit</a>
+                <a href="{% url 'delete_chatroom' chatroom.id %}" class="btn btn-danger">Delete</a>
+            {% endif %}
+            </div>  
         {% endfor %}
     </ul>
 

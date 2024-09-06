@@ -414,6 +414,44 @@ def chat_room_detail(request, room_name):
 
 
 @login_required
+def edit_chatroom(request, pk):
+    chatroom = get_object_or_404(ChatRoom, pk=pk)
+
+    if request.user != chatroom.admin:
+        messages.error(
+            request, "You are not authorized to edit this chat room.")
+        return redirect('chat_rooms')
+
+    if request.method == 'POST':
+        form = ChatRoomForm(request.POST, instance=chatroom)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Chat room updated successfully.")
+            return redirect('chat_rooms')
+    else:
+        form = ChatRoomForm(instance=chatroom)
+
+    return render(request, 'eLearning_app/edit_chatroom.html', {'form': form})
+
+
+@login_required
+def delete_chatroom(request, pk):
+    chatroom = get_object_or_404(ChatRoom, pk=pk)
+
+    if request.user != chatroom.admin:
+        messages.error(
+            request, "You are not authorized to delete this chat room.")
+        return redirect('chat_rooms')
+
+    if request.method == 'POST':
+        chatroom.delete()
+        messages.success(request, "Chat room deleted successfully.")
+        return redirect('chat_rooms')
+
+    return render(request, 'eLearning_app/delete_chatroom.html', {'chatroom': chatroom})
+
+
+@login_required
 def chat_rooms(request):
     if request.method == 'POST':
         form = ChatRoomForm(request.POST)
