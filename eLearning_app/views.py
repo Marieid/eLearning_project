@@ -506,7 +506,6 @@ def view_other_user_profile(request, user_id):
 @login_required
 def user_profile_detail(request, user_id):
     user = get_object_or_404(User, id=user_id)
-
     context = {'profile_user': user}
 
     if hasattr(user, 'elearnuser'):
