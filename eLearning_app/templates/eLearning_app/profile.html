@@ -91,6 +91,12 @@
             <a href="{% url 'mark_notification_as_read' notification.id %}" class="btn btn-sm btn-outline-secondary">Mark as Read</a>
         </li>
         {% endfor %}
+        {% for notification in block_notifications %}
+        <li class="list-group-item text-danger">
+            {{ notification.message }}
+            <a href="{% url 'mark_notification_as_read' notification.id %}" class="btn btn-sm btn-outline-secondary">Mark as Read</a>
+        </li>
+        {% endfor %}
     </ul>
 
     <h3>Status Updates</h3>

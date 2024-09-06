@@ -51,4 +51,6 @@ urlpatterns = [
          name='view_other_user_profile'),
     path('profile/<int:user_id>/', views.user_profile_detail,
          name='user_profile_detail'),
+    path('course/<int:course_id>/block_student/<int:student_id>/',
+         views.block_student_from_course, name='block_student_from_course'),
 ]

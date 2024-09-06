@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
-from .models import User, elearnUser, Course, Enrollment, Material, StatusUpdate, ChatRoom, Message, EnrollmentNotification, MaterialNotification
+from .models import User, elearnUser, Course, Enrollment, Material, StatusUpdate, ChatRoom, Message, EnrollmentNotification, MaterialNotification, BlockNotification
 from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm, UserProfileUpdateForm, MaterialForm, FeedbackForm, StatusUpdateForm, ChatRoomForm
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
@@ -55,18 +55,25 @@ def profile(request):
         if request.user.elearnuser.user_type == 'student':
             enrolled_courses = request.user.elearnuser.enrolled_courses.all()
             context['enrolled_courses'] = enrolled_courses
-         # Fetch unread enrollment and material notifications for the student user
+
+            # Fetch unread enrollment and material notifications
             enrollment_notifications = EnrollmentNotification.objects.filter(
                 student=request.user.elearnuser, read=False)
             material_notifications = MaterialNotification.objects.filter(
                 student=request.user.elearnuser, read=False)
+            block_notifications = BlockNotification.objects.filter(
+                student=request.user.elearnuser, read=False)
+
             context['enrollment_notifications'] = enrollment_notifications
             context['material_notifications'] = material_notifications
+            context['block_notifications'] = block_notifications
+
         elif request.user.elearnuser.user_type == 'teacher':
             courses_taught = Course.objects.filter(
                 teacher=request.user.elearnuser)
             context['courses_taught'] = courses_taught
-            # Fetch unread enrollment notifications for the teacher user
+
+            # Fetch unread enrollment notifications for the teacher
             enrollment_notifications = EnrollmentNotification.objects.filter(
                 teacher=request.user.elearnuser, read=False)
             context['enrollment_notifications'] = enrollment_notifications
@@ -126,6 +133,8 @@ def course_list(request):
 
 def course_detail(request, course_id):
     course = get_object_or_404(Course, id=course_id)
+
+    # Fetch materials based on user type
     if hasattr(request.user, 'elearnuser'):
         if request.user.elearnuser.user_type == 'teacher':
             materials = Material.objects.filter(course=course)
@@ -133,25 +142,27 @@ def course_detail(request, course_id):
             materials = Material.objects.filter(Q(course=course, uploader=course.teacher) | Q(
                 course=course, uploader=request.user.elearnuser))
     else:  # User has no elearnuser object
-        # Only show teacher-uploaded materials
         materials = Material.objects.filter(
             course=course, uploader=course.teacher)
-    # Check if enrollment just happened
+
+    # Handle course enrollment if post request is made
     if request.method == 'POST' and 'enroll' in request.POST:
-        # Call enroll_in_course view to handle enrollment
         enroll_in_course(request, course_id)
 
-    # Fetch enrolled students and add to context
+    # Fetch enrolled students and block status
     enrolled_students = course.students.all()
-    print('enrolled students: ' + str(enrolled_students))
+    blocked_students = {student.user.id: student.blocknotification_set.filter(
+        course=course).exists() for student in enrolled_students}
 
     context = {
         'course': course,
         'materials': materials,
         'enrolled_students': enrolled_students,
+        'blocked_students': blocked_students,  # Pass blocked students status
         'feedback_form': FeedbackForm(),
-        'teacher': course.teacher,  # Add this line
+        'teacher': course.teacher,
     }
+
     return render(request, 'eLearning_app/course_detail.html', context)
 
 
@@ -557,3 +568,31 @@ def user_profile_detail(request, user_id):
             context['courses_taught'] = courses_taught
 
     return render(request, 'eLearning_app/profile.html', context)
+
+
+@login_required
+def block_student_from_course(request, course_id, student_id):
+    course = get_object_or_404(Course, id=course_id)
+    student = get_object_or_404(elearnUser, user_id=student_id)
+
+    if request.method == "POST":
+        # Remove the student from the course
+        course.students.remove(student)
+
+        # Create a BlockNotification
+        BlockNotification.objects.create(
+            course=course,
+            student=student,
+            message=f"You have been blocked from the course: {course.name}"
+        )
+
+    return redirect('course_detail', course_id=course.id)
+
+
+@login_required
+def mark_notification_as_read(request, notification_id):
+    notification = get_object_or_404(
+        BlockNotification, id=notification_id, student=request.user.elearnuser)
+    notification.read = True
+    notification.save()
+    return redirect('profile')
