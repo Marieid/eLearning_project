@@ -457,18 +457,16 @@ def chat_rooms(request):
         form = ChatRoomForm(request.POST)
         if form.is_valid():
             chat_room = form.save(commit=False)
-            # Set the admin to the current user
             chat_room.admin = request.user
             chat_room.save()
-            # Add the current user as a member
             chat_room.members.add(request.user)
             return redirect('chat_room_detail', room_name=chat_room.chat_name)
         else:
+            # Print form errors for debugging
             print(form.errors)
     else:
         form = ChatRoomForm()
 
-    # Fetches all chat rooms
     chat_rooms = ChatRoom.objects.all()
     return render(request, 'eLearning_app/chat_rooms.html', {
         'chat_rooms': chat_rooms,

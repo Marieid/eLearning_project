@@ -2,12 +2,12 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="text-center mb-4">User Profile</h2>
+    <h2 class="text-left mb-4">User Profile</h2>
 
     <div class="row mb-4">
         <div class="col-md-3 text-center">
             {% if user.profile_picture %}
-            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="img-fluid rounded-circle" width="150" />
+            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="img-fluid circle" width="300" />
             {% else %}
             <p>No profile picture yet.</p>
             {% endif %}
@@ -94,18 +94,20 @@
     </ul>
 
     <h3>Status Updates</h3>
-    <ul id="status-updates-list" class="list-group mb-4">
+        <ul id="status-updates-list" class="list-group mb-4">
         {% for status_update in user.statusupdate_set.all %}
-        <li class="list-group-item">
-            {% include 'eLearning_app/status_update.html' %}
-            {% if user == status_update.user %}
-            <a href="{% url 'edit_status_update' status_update.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-            <a href="{% url 'delete_status_update' status_update.id %}" class="btn btn-sm btn-danger"
-                onclick="return confirm('Are you sure you want to delete this status update?')">Delete</a>
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
+            <div class="list-group-item">
+                <li>{{ status_update.content }} ({{ status_update.timestamp }})</li>
+                    {% if user == status_update.user %}
+                        <div class="mt-2">
+                            <a href="{% url 'edit_status_update' status_update.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                            <a href="{% url 'delete_status_update' status_update.id %}" class="btn btn-sm btn-danger"
+                            onclick="return confirm('Are you sure you want to delete this status update?')">Delete</a>
+                        </div>
+                    {% endif %}
+                </div>  
+            {% endfor %}
+        </ul>
 
     {% if user.is_authenticated %}
     <h3>Post a New Status Update</h3>

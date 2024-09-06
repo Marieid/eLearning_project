@@ -10864,3 +10864,23 @@ header.masthead .post-heading .meta a {
   max-height: 200px;
   object-fit: cover;
 }
+
+/* Apply styles to list items within #status-updates-list */
+#status-updates-list .list-group-item {
+  border: 1px solid #ddd;
+  /* Light gray border color */
+  border-radius: 0.25rem;
+  /* Optional: adds rounded corners */
+  padding: 20px;
+  /* Adds padding inside the border */
+  margin-bottom: 20px;
+  /* Space between list items */
+  list-style-type: none;
+  /* Removes the bullet points */
+
+}
+
+/* Removes default padding for the list */
+#status-updates-list {
+  padding-left: 5;
+}
