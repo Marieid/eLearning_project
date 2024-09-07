@@ -50,6 +50,16 @@ class Course(models.Model):
         return f"{self.code} - {self.name}"
 
 
+class CourseDiscussion(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.user.username}: {self.content[:50]}'
+
+
 class Material(models.Model):
     id = models.BigAutoField(primary_key=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)

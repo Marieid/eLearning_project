@@ -4,11 +4,11 @@
 <div class="container mt-5">
 
     <!-- Course Information -->
-    <div class="mb-5">
+    <div class="mb-5 border p-4 rounded bg-light shadow-sm">
         <h2>{{ course.name }}</h2>
         <p><strong>Course Code:</strong> {{ course.code }}</p>
         <p><strong>Teacher:</strong> 
-            <a href="{% url 'view_other_user_profile' course.teacher.user.id %}">
+            <a href="{% url 'view_other_user_profile' course.teacher.user.id %}" class="text-primary">
                 {{ course.teacher.user.first_name }} {{ course.teacher.user.last_name }}
             </a>
         </p>
@@ -17,18 +17,18 @@
 
     <!-- Materials Section -->
     <div class="mb-5">
-        <h3>Course Materials</h3>
+        <h3 class="mb-3">Course Materials</h3>
         <ul class="list-group">
             {% for material in materials %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
                     <a href="{{ material.file.url }}" class="text-decoration-none">{{ material.name }}</a>
-                    <p class="mb-0">{{ material.description }}</p>
+                    <p class="mb-0 text-muted">{{ material.description }}</p>
                 </div>
                 {% if user.is_authenticated and material.uploader == user.elearnuser %}
                 <div>
                     <a href="{% url 'edit_material' course.id material.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-                    <a href="{% url 'delete_material' course.id material.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this material?')">Delete</a>
+                    <a href="{% url 'delete_material' course.id material.id %}" class="btn btn-sm btn-outline-danger ms-2" onclick="return confirm('Are you sure you want to delete this material?')">Delete</a>
                 </div>
                 {% endif %}
             </li>
@@ -39,9 +39,10 @@
     </div>
 
     <!-- Enrolled Students Section -->
-    <ul class="list-group mb-4">
-        {% for student in enrolled_students %}
-            {% if not blocked_students.student.user.id %}
+    <div class="mb-4">
+        <h3 class="mb-3">Enrolled Students</h3>
+        <ul class="list-group">
+            {% for student in enrolled_students %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     {{ student.user.first_name }} {{ student.user.last_name }}
                     {% if user.is_authenticated and user.elearnuser.user_type == 'teacher' %}
@@ -51,21 +52,18 @@
                             <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to block this student?')">Block</button>
                         </form>
                     {% endif %}
+                    {% if blocked_students.student.user.id %}
+                        <span class="badge bg-danger ms-2">Blocked</span>
+                    {% endif %}
                 </li>
-            {% else %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ student.user.first_name }} {{ student.user.last_name }}
-                    <span class="badge bg-danger">Blocked</span>
-                </li>
-            {% endif %}
-        {% endfor %}
-</ul>
-
+            {% endfor %}
+        </ul>
+    </div>
 
     <!-- Feedback Submission Section for Students -->
     {% if user.is_authenticated and user.elearnuser.user_type == 'student' and user.elearnuser in enrolled_students %}
     <div class="card mb-5">
-        <div class="card-header">
+        <div class="card-header bg-primary text-white">
             <h3>Submit Feedback</h3>
         </div>
         <div class="card-body">
@@ -80,7 +78,7 @@
 
     <!-- Feedback Section -->
     <div class="mb-5">
-        <h3>Feedback</h3>
+        <h3 class="mb-3">Feedback</h3>
         <ul class="list-group">
             {% for feedback in course.feedback_set.all %}
             <li class="list-group-item">
@@ -97,22 +95,48 @@
     <!-- Course Management for Teachers -->
     {% if user.is_authenticated and user.elearnuser.user_type == 'teacher' and course.teacher == user.elearnuser %}
     <div class="mb-5">
-        <h3>Manage Course</h3>
-        <div class="d-flex">
-            <a href="{% url 'edit_course' course.id %}" class="btn btn-outline-secondary me-2">Edit Course</a>
-            <a href="{% url 'delete_course' course.id %}" class="btn btn-outline-danger me-2" onclick="return confirm('Are you sure you want to delete this course?')">Delete Course</a>
+        <h3 class="mb-3">Manage Course</h3>
+        <div class="d-flex gap-2">
+            <a href="{% url 'edit_course' course.id %}" class="btn btn-outline-secondary">Edit Course</a>
+            <a href="{% url 'delete_course' course.id %}" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete this course?')">Delete Course</a>
             {% if course.enrollment_status == 'open' %}
-            <a href="{% url 'close_enrollment' course.id %}" class="btn btn-warning me-2" onclick="return confirm('Are you sure you want to close enrollment?')">Close Enrollment</a>
+            <a href="{% url 'close_enrollment' course.id %}" class="btn btn-warning" onclick="return confirm('Are you sure you want to close enrollment?')">Close Enrollment</a>
             {% else %}
-            <a href="{% url 'open_enrollment' course.id %}" class="btn btn-success me-2" onclick="return confirm('Are you sure you want to reopen enrollment?')">Reopen Enrollment</a>
+            <a href="{% url 'open_enrollment' course.id %}" class="btn btn-success" onclick="return confirm('Are you sure you want to reopen enrollment?')">Reopen Enrollment</a>
             {% endif %}
             <a href="{% url 'add_material' course.id %}" class="btn btn-info">Add Material</a>
         </div>
     </div>
     {% endif %}
 
-    <!-- Back to Course List Link -->
-    <a href="{% url 'course_list' %}" class="btn btn-outline-primary">Back to All Courses</a>
+    <!-- Course Discussion -->
+    {% if is_enrolled %}
+    <div class="mb-5">
+        <h2 class="mb-3">Course Discussion</h2>
+        <div class="discussion border p-3 rounded bg-light">
+            <!-- Display messages -->
+            {% for message in messages %}
+                <div class="message mb-3 p-2 border rounded bg-white shadow-sm">
+                    <strong>{{ message.user.username }}:</strong>
+                    <p>{{ message.content }}</p>
+                    <small class="text-muted">{{ message.timestamp }}</small>
+                </div>
+            {% empty %}
+                <p>No messages yet. Be the first to start a discussion!</p>
+            {% endfor %}
+        </div>
 
+        <!-- Form for posting new messages -->
+        <form method="post" class="mt-4">
+            {% csrf_token %}
+            <div class="mb-3">
+                <textarea name="message_content" class="form-control" rows="4" placeholder="Type your message here..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Post Message</button>
+        </form>
+    </div>
+    {% else %}
+    <p class="alert alert-warning">You must be enrolled in the course to participate in the discussion.</p>
+    {% endif %}
 </div>
 {% endblock %}

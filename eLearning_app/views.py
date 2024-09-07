@@ -129,8 +129,10 @@ def course_list(request):
     return render(request, 'eLearning_app/course_list.html', {'courses': courses, 'enrolled_courses': enrolled_courses})
 
 
+@login_required
 def course_detail(request, course_id):
     course = get_object_or_404(Course, id=course_id)
+    teacher = course.teacher.user
 
     # Fetch materials based on user type
     if hasattr(request.user, 'elearnuser'):
@@ -147,21 +149,54 @@ def course_detail(request, course_id):
     if request.method == 'POST' and 'enroll' in request.POST:
         enroll_in_course(request, course_id)
 
+    # Handle posting a new message to the discussion
+    if request.method == 'POST' and 'message_content' in request.POST:
+        if user_is_enrolled(request.user, course):
+            message_content = request.POST['message_content']
+            chat_room = get_object_or_404(
+                ChatRoom, chat_name=f"Course {course_id} Discussion")
+            Message.objects.create(
+                chat_room=chat_room,
+                user=request.user,
+                content=message_content
+            )
+        return redirect('course_detail', course_id=course_id)
+
     # Fetch enrolled students and block status
     enrolled_students = course.students.all()
     blocked_students = {student.user.id: student.blocknotification_set.filter(
         course=course).exists() for student in enrolled_students}
 
+    # Fetch course discussion messages
+    chat_room, created = ChatRoom.objects.get_or_create(
+        chat_name=f"Course {course_id} Discussion",
+        # Set the teacher as the admin if creating a new chat room
+        defaults={'admin': teacher}
+    )
+    messages = Message.objects.filter(
+        chat_room=chat_room).order_by('timestamp')
+
+    # Check if user is enrolled in the course
+    is_enrolled = user_is_enrolled(request.user, course)
+
     context = {
         'course': course,
         'materials': materials,
         'enrolled_students': enrolled_students,
-        'blocked_students': blocked_students,  # Pass blocked students status
+        'blocked_students': blocked_students,
         'feedback_form': FeedbackForm(),
-        'teacher': course.teacher,
+        'teacher': teacher,
+        'messages': messages if is_enrolled else None,
+        'chat_room': chat_room if is_enrolled else None,
+        'is_enrolled': is_enrolled,
     }
 
     return render(request, 'eLearning_app/course_detail.html', context)
+
+
+def user_is_enrolled(user, course):
+    """ Check if the user is enrolled in the course """
+    return user.elearnuser in course.students.all() or (hasattr(user, 'elearnuser') and user.elearnuser.user_type == 'teacher')
 
 
 @login_required
