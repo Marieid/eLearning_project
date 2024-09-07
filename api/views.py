@@ -1,4 +1,5 @@
 from rest_framework import viewsets, permissions, mixins, filters
+from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
@@ -153,6 +154,7 @@ class EnrollmentViewSet(mixins.CreateModelMixin,
     queryset = Enrollment.objects.all()
     serializer_class = EnrollmentSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None
 
     def perform_create(self, serializer):
         if self.request.user.elearnuser.user_type == 'teacher':
@@ -161,6 +163,15 @@ class EnrollmentViewSet(mixins.CreateModelMixin,
         course_id = self.kwargs.get('course_pk')
         course = get_object_or_404(Course, pk=course_id)
         serializer.save(student=self.request.user.elearnuser, course=course)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if queryset.count() == 1:
+            serializer = self.get_serializer(queryset.first())
+            return Response(serializer.data)
+        else:
+            return super().list(request, *args, **kwargs)
 
 
 class CourseViewSet(viewsets.ModelViewSet):

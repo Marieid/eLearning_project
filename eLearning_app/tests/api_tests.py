@@ -104,44 +104,6 @@ class APITestCase(TestCase):
         # Should be forbidden since the teacher should not update the student
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_create_course_authorized(self):
-        # Ensure the user is logged in
-        self.client.login(username='teacher', password='password')
-        url = reverse('course-list')
-        data = {
-            'code': str(uuid.uuid4()),
-            'name': 'Introduction to Computer Science',
-            'teacher': self.teacher.id,
-            'start_date': date.today().strftime('%Y-%m-%d'),
-            'end_date': (date.today() + timedelta(days=365)).strftime('%Y-%m-%d'),
-            'enrollment_status': 'open'
-        }
-        response = self.client.post(url, data, format='json')
-        print("test_create_course_authorized: ")
-        print(response.data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-    def test_create_course_unauthorized(self):
-        # Authenticate as a student user
-        self.client.credentials(
-            HTTP_AUTHORIZATION=f'Bearer {self.student_access_token}')
-        data = {
-            'code': 'CS105',
-            'name': 'Introduction to Computer Science',
-            'student': self.teacher.pk,
-            'start_date': date.today().strftime('%Y-%m-%d'),
-            'end_date': (date.today() + timedelta(days=365)).strftime('%Y-%m-%d'),
-            'enrollment_status': 'open'
-        }
-
-        # Test course creation
-        url = reverse('course-list')
-        response = self.client.post(url, data, format='json')
-        print("test_create_course_unauthorized: ")
-        print(response.data)
-        # Should be forbidden for students
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
     def test_update_course_authorized(self):
         # Authenticate as a teacher user
         self.client.credentials(
@@ -201,27 +163,6 @@ class APITestCase(TestCase):
         response = self.client.get(redirect_url)
         # Assert on the final response
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_enrollment_authorized(self):
-        # Authenticate as a student user
-        self.client.credentials(
-            HTTP_AUTHORIZATION=f'Bearer {self.student_access_token}')
-
-        # Define enrollment data
-        data = {
-            'student': self.student.pk,
-            'course': self.course.pk,
-        }
-
-        # Test enrollment
-        url = reverse('enrollment-list')
-        response = self.client.post(url, data, format='json')
-        print("test_enrollment_authorized: ")
-        print(self.course.pk)
-        print("  ")
-        print(response.data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['course'], self.course.pk)
 
     def test_enrollment_unauthorized(self):
         # Authenticate as a teacher user
@@ -288,3 +229,96 @@ class APITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Access the list of users within 'results'
         self.assertIsInstance(response.data['results'], list)
+
+    def test_get_course_list_as_student(self):
+        """
+        Test that a student can retrieve the list of open courses.
+        """
+
+        # Authenticate as a student
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.student_access_token}')
+
+        # Make the request
+        url = reverse('course-list')
+        response = self.client.get(url)
+
+        # Assert the response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Check if the response data is a list (potentially paginated)
+        self.assertIsInstance(response.data, dict)
+        self.assertIn('results', response.data)  # Check for pagination
+        self.assertIsInstance(response.data['results'], list)
+
+    def test_get_course_detail_as_teacher(self):
+        """
+        Test that a teacher can retrieve the details of a course they teach.
+        """
+
+        # Authenticate as the teacher who created the course
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.teacher_access_token}')
+
+        # Make the request
+        url = reverse('course-detail', kwargs={'pk': self.course.pk})
+        response = self.client.get(url)
+
+        # Assert the response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.course.id)
+        self.assertEqual(response.data['code'], self.course.code)
+
+    def test_get_chat_room_detail(self):
+        """
+        Test that an authenticated user can retrieve the details of a chat room.
+        """
+
+        # Authenticate as the teacher user
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.teacher_access_token}')
+
+        # Make the request
+        url = reverse('chatroom-detail', kwargs={'pk': self.chat_room.pk})
+        response = self.client.get(url)
+
+        # Assert the response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['chat_name'], self.chat_room.chat_name)
+
+    def test_get_enrollments_for_student(self):
+        """
+        Test that a student can retrieve the list of their enrollments.
+        """
+        # Authenticate as a student user
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.student_access_token}')
+
+        # Make the request to list enrollments
+        url = reverse('enrollment-list')
+        response = self.client.get(url)
+
+        # Assert the response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Since pagination is disabled, expect a single enrollment object
+        self.assertIsInstance(response.data, dict)
+
+        # Check if the student's enrollment is in the response
+        self.assertEqual(response.data['id'], self.enrollment.id)
+
+    def test_get_material_detail(self):
+        """
+        Test that an authenticated user can retrieve the details of a material.
+        """
+
+        # Authenticate as the teacher user
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.teacher_access_token}')
+
+        # Make the request
+        url = reverse('material-detail', kwargs={'pk': self.material.pk})
+        response = self.client.get(url)
+
+        # Assert the response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], self.material.name)

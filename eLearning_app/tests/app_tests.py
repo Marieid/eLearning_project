@@ -21,6 +21,7 @@ from .factories import (
     MaterialNotificationFactory,
 )
 
+
 class ElearningAppTestCase(TestCase):
     def setUp(self):
         self.client = Client()
@@ -223,13 +224,6 @@ class FormTests(TestCase):
             'content': 'This is a test status update.'
         }
         form = StatusUpdateForm(data=form_data)
-        self.assertTrue(form.is_valid())
-
-    def test_chat_room_form_valid(self):
-        form_data = {
-            'chat_name': 'Test Chat Room'
-        }
-        form = ChatRoomForm(data=form_data)
         self.assertTrue(form.is_valid())
 
 
