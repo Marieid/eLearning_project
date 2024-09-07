@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Course, Material, Feedback, StatusUpdate, ChatRoom, Enrollment, EnrollmentNotification, MaterialNotification, elearnUser
+from .models import User, Course, Material, Feedback, StatusUpdate, ChatRoom, Enrollment, EnrollmentNotification, MaterialNotification, elearnUser, BlockNotification
 
 
 class CustomUserAdmin(UserAdmin):
@@ -32,3 +32,4 @@ admin.site.register(Enrollment)
 admin.site.register(EnrollmentNotification)
 admin.site.register(MaterialNotification)
 admin.site.register(elearnUser)
+admin.site.register(BlockNotification)

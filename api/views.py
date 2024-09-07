@@ -2,8 +2,8 @@ from rest_framework import viewsets, permissions, mixins, filters
 from rest_framework.exceptions import PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
-from eLearning_app.models import User, elearnUser, Course, Material, Feedback, StatusUpdate, ChatRoom, Enrollment
-from .serializers import UserSerializer, ElearnUserSerializer, CourseListSerializer, MaterialSerializer, FeedbackSerializer, StatusUpdateSerializer, ChatRoomSerializer, EnrollmentSerializer
+from eLearning_app.models import User, elearnUser, Course, Material, Feedback, StatusUpdate, ChatRoom, Enrollment, EnrollmentNotification, MaterialNotification, BlockNotification
+from .serializers import UserSerializer, ElearnUserSerializer, CourseListSerializer, MaterialSerializer, FeedbackSerializer, StatusUpdateSerializer, ChatRoomSerializer, EnrollmentSerializer, EnrollmentNotificationSerializer, MaterialNotificationSerializer, BlockNotificationSerializer
 
 # Custom permission class to allow only owners to update or delete objects
 
@@ -183,3 +183,21 @@ class CourseViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['name', 'code']
     search_fields = ['name']
+
+
+class EnrollmentNotificationViewSet(viewsets.ModelViewSet):
+    queryset = EnrollmentNotification.objects.all()
+    serializer_class = EnrollmentNotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class MaterialNotificationViewSet(viewsets.ModelViewSet):
+    queryset = MaterialNotification.objects.all()
+    serializer_class = MaterialNotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class BlockNotificationViewSet(viewsets.ModelViewSet):
+    queryset = BlockNotification.objects.all()
+    serializer_class = BlockNotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]

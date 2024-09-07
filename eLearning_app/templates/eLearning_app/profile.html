@@ -83,20 +83,20 @@
             {% for notification in enrollment_notifications %}
             <li class="list-group-item">
                 Student {{ notification.student.user }} has enrolled in {{ notification.course }}.
-                <a href="{% url 'mark_notification_as_read' notification.id %}" class="btn btn-sm btn-outline-secondary">Mark as Read</a>
+                <a href="{% url 'mark_notification_as_read' notification.id 'enrollment' %}">Mark as Read</a>
             </li>
             {% endfor %}
         {% endif %}
         {% for notification in material_notifications %}
         <li class="list-group-item">
             New material '{{ notification.material.name }}' has been added to {{ notification.material.course }}.
-            <a href="{% url 'mark_notification_as_read' notification.id %}" class="btn btn-sm btn-outline-secondary">Mark as Read</a>
+            <a href="{% url 'mark_notification_as_read' notification.id 'material' %}">Mark as Read</a>
         </li>
         {% endfor %}
         {% for notification in block_notifications %}
         <li class="list-group-item text-danger">
             {{ notification.message }}
-            <a href="{% url 'mark_notification_as_read' notification.id %}" class="btn btn-sm btn-outline-secondary">Mark as Read</a>
+            <a href="{% url 'mark_notification_as_read' notification.id 'block' %}">Mark as Read</a>
         </li>
         {% endfor %}
     </ul>

@@ -8,6 +8,8 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from django.template.loader import render_to_string
+import logging
+logger = logging.getLogger(__name__)
 
 
 def index(request):
@@ -387,7 +389,7 @@ def submit_feedback(request, course_id):
 @login_required
 def post_status_update(request):
     if request.method == 'POST':
-        print("POST request received")  # Check if POST data is received
+        print("POST request received")
         form = StatusUpdateForm(request.POST)
         if form.is_valid():
             status_update = form.save(commit=False)
@@ -531,19 +533,26 @@ def delete_message(request, message_id):
 
 
 @login_required
-def mark_notification_as_read(request, notification_id):
+def mark_notification_as_read(request, notification_id, notification_type):
+    logger.debug(
+        f"Notification ID: {notification_id}, Type: {notification_type}")
+
+    notification_model = {
+        'enrollment': EnrollmentNotification,
+        'material': MaterialNotification,
+        'block': BlockNotification,
+    }.get(notification_type)
+
+    if not notification_model:
+        messages.error(request, 'Invalid notification type.')
+        return redirect('profile')
+
     try:
-        # Try to get EnrollmentNotification first
-        notification = EnrollmentNotification.objects.get(
-            id=notification_id, teacher=request.user.elearnuser)
-    except EnrollmentNotification.DoesNotExist:
-        # If not found, try to get MaterialNotification
-        try:
-            notification = MaterialNotification.objects.get(
-                id=notification_id, student=request.user.elearnuser)
-        except MaterialNotification.DoesNotExist:
-            messages.error(request, 'Notification not found.')
-            return redirect('profile')
+        notification = get_object_or_404(
+            notification_model, id=notification_id, student=request.user.elearnuser)
+    except notification_model.DoesNotExist:
+        messages.error(request, 'Notification not found.')
+        return redirect('profile')
 
     notification.read = True
     notification.save()
@@ -631,12 +640,4 @@ def block_student_from_course(request, course_id, student_id):
         )
 
     return redirect('course_detail', course_id=course.id)
-
-
-@login_required
-def mark_notification_as_read(request, notification_id):
-    notification = get_object_or_404(
-        BlockNotification, id=notification_id, student=request.user.elearnuser)
-    notification.read = True
-    notification.save()
-    return redirect('profile')
+    

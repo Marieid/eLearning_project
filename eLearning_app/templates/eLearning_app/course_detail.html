@@ -114,7 +114,7 @@
     <div class="mb-5">
         <h2 class="mb-3">Course Discussion</h2>
         <div class="discussion border p-3 rounded bg-light">
-            <!-- Display messages -->
+            <!-- Show messages -->
             {% for message in messages %}
                 <div class="message mb-3 p-2 border rounded bg-white shadow-sm">
                     <strong>{{ message.user.username }}:</strong>
@@ -126,7 +126,7 @@
             {% endfor %}
         </div>
 
-        <!-- Form for posting new messages -->
+        <!-- Form for posting new messages in the course discussion -->
         <form method="post" class="mt-4">
             {% csrf_token %}
             <div class="mb-3">

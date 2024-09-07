@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from eLearning_app.models import User, elearnUser, Course, Material, Feedback, StatusUpdate, ChatRoom, Enrollment, EnrollmentNotification, MaterialNotification
+from eLearning_app.models import User, elearnUser, Course, Material, Feedback, StatusUpdate, ChatRoom, Enrollment, EnrollmentNotification, MaterialNotification, BlockNotification
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -122,3 +122,15 @@ class MaterialNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = MaterialNotification
         fields = ['id', 'material', 'student', 'read']
+
+
+class BlockNotificationSerializer(serializers.ModelSerializer):
+    """Serializer for block notifications, including user and course details."""
+    course = CourseListSerializer()  
+    student = ElearnUserSerializer()  
+    teacher = ElearnUserSerializer() 
+
+    class Meta:
+        model = BlockNotification  
+        fields = ['id', 'course', 'student', 'teacher',
+                  'read']  

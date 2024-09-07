@@ -47,7 +47,7 @@ urlpatterns = [
          views.delete_chatroom, name='delete_chatroom'),
     path('delete_message/<int:message_id>/',
          delete_message, name='delete_message'),
-    path('notification/<int:notification_id>/mark_as_read/',
+    path('notification/<int:notification_id>/mark_as_read/<str:notification_type>/',
          views.mark_notification_as_read, name='mark_notification_as_read'),
     path('search/', views.search_users, name='search_users'),
     path('user/<int:user_id>/', views.view_other_user_profile,

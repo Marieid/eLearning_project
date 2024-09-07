@@ -7,12 +7,10 @@ from . import views
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="My API",
+        title="Elearning App API",
         default_version='v1',
-        description="Test description",
+        description="CM3035 - Advanced web development -- Final project",
         terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="contact@myapi.local"),
-        license=openapi.License(name="BSD License"),
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
@@ -27,6 +25,10 @@ router.register(r'feedbacks', views.FeedbackViewSet)
 router.register(r'statusupdates', views.StatusUpdateViewSet)
 router.register(r'chatrooms', views.ChatRoomViewSet)
 router.register(r'enrollments', views.EnrollmentViewSet)
+router.register(r'enrollmentnotifications',
+                views.EnrollmentNotificationViewSet)
+router.register(r'materialnotifications', views.MaterialNotificationViewSet)
+router.register(r'blocknotifications', views.BlockNotificationViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
