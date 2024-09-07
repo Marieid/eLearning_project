@@ -120,15 +120,25 @@ def create_course(request):
     return render(request, 'eLearning_app/create_course.html', {'form': form})
 
 
+@login_required
 def course_list(request):
     courses = Course.objects.filter(enrollment_status='open')
-    if request.user.is_authenticated and hasattr(request.user, 'elearnuser') and request.user.elearnuser.user_type == 'student':
-        enrolled_courses = request.user.elearnuser.enrolled_courses.all()
-        print('course list, enrolled students: ' + str(enrolled_courses))
-    else:
-        enrolled_courses = []
+    enrolled_courses = []
+    blocked_courses = []
 
-    return render(request, 'eLearning_app/course_list.html', {'courses': courses, 'enrolled_courses': enrolled_courses})
+    if hasattr(request.user, 'elearnuser') and request.user.elearnuser.user_type == 'student':
+        enrolled_courses = request.user.elearnuser.enrolled_courses.all()
+
+        # Fetch blocked courses
+        blocked_courses = BlockNotification.objects.filter(
+            student=request.user.elearnuser).values_list('course', flat=True)
+
+    context = {
+        'courses': courses,
+        'enrolled_courses': enrolled_courses,
+        'blocked_courses': blocked_courses,
+    }
+    return render(request, 'eLearning_app/course_list.html', context)
 
 
 @login_required
@@ -266,10 +276,30 @@ def enroll_in_course(request, course_id):
         # Refresh the course's students ManyToManyField
         course.students.add(request.user.elearnuser)
 
-     # Execute after the transaction is committed
+     # Executes after the transaction is doe
     transaction.on_commit(update_course_students)
     messages.success(request, "Enrolled in course successfully!")
     return redirect('course_detail', course_id=course.id)
+
+
+@login_required
+def unenroll_from_course(request, course_id):
+    if not request.user.elearnuser.user_type == 'student':
+        messages.error(request, "Only students can unenroll from courses.")
+        return redirect('profile')
+
+    course = get_object_or_404(Course, id=course_id)
+    try:
+        enrollment = Enrollment.objects.get(
+            student=request.user.elearnuser, course=course)
+    except Enrollment.DoesNotExist:
+        messages.error(request, "You are not enrolled in this course.")
+        return redirect('course_list', course_id=course.id)
+
+    enrollment.delete()
+    course.students.remove(request.user.elearnuser)
+    messages.success(request, "Unenrolled from course successfully!")
+    return redirect('course_list', course_id=course.id)
 
 
 @login_required
@@ -640,4 +670,3 @@ def block_student_from_course(request, course_id, student_id):
         )
 
     return redirect('course_detail', course_id=course.id)
-    

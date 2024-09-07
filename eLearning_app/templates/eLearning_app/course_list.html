@@ -12,8 +12,14 @@
             {% for course in courses %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <a href="{% url 'course_detail' course.id %}" class="text-decoration-none">{{ course.name }}</a>
-                    {% if user.is_authenticated and user.elearnuser.user_type == 'student' and course not in enrolled_courses %} 
-                        <a href="{% url 'enroll_in_course' course.id %}" class="btn btn-primary btn-sm">Enroll</a>
+                    {% if user.is_authenticated and user.elearnuser.user_type == 'student' %}
+                        {% if course in enrolled_courses %}
+                            <a href="{% url 'unenroll_from_course' course.id %}" class="btn btn-danger btn-sm">Unenroll</a>
+                        {% elif course.id in blocked_courses %}
+                            <span class="btn btn-secondary btn-sm" disabled>Blocked</span>
+                        {% else %}
+                            <a href="{% url 'enroll_in_course' course.id %}" class="btn btn-primary btn-sm">Enroll</a>
+                        {% endif %}
                     {% endif %}
                 </li>
             {% endfor %}

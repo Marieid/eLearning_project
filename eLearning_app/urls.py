@@ -3,6 +3,7 @@ from django.contrib.auth.views import LogoutView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from . import views
 from .views import delete_message
+from .views import unenroll_from_course
 
 
 urlpatterns = [
@@ -23,6 +24,8 @@ urlpatterns = [
          views.open_enrollment, name='open_enrollment'),
     path('course/<int:course_id>/enroll/',
          views.enroll_in_course, name='enroll_in_course'),
+    path('course/<int:course_id>/unenroll/',
+         unenroll_from_course, name='unenroll_from_course'),
     path('course/<int:course_id>/', views.course_detail, name='course_detail'),
     path('course/<int:course_id>/add_material/',
          views.add_material, name='add_material'),
