@@ -66,7 +66,7 @@ class Feedback(models.Model):
     student = models.ForeignKey(
         elearnUser, on_delete=models.CASCADE, limit_choices_to=Q(user_type='student'))
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
-    # Ensures rating is positive
+    # Ensures rating is a positive integer
     rating = models.PositiveIntegerField()
     comment = models.TextField()
 
