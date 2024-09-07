@@ -116,7 +116,7 @@ class FeedbackViewSet(viewsets.ModelViewSet):
     serializer_class = FeedbackSerializer
 
     def get_permissions(self):
-        # Allows read-only access to teachers
+        # Allows read-only access to teachers, write access only for students
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             permission_classes = [
                 permissions.IsAuthenticated, IsOwnerOrReadOnly]
@@ -129,21 +129,7 @@ class FeedbackViewSet(viewsets.ModelViewSet):
         if hasattr(self.request.user, 'elearnuser') and self.request.user.elearnuser.user_type == 'student':
             serializer.save(student=self.request.user.elearnuser)
         else:
-            raise PermissionDenied("Only students can give feedback.")
-
-    def perform_update(self, serializer):
-        # Ensure that only the owner (and only if they are a student) can update feedback
-        if hasattr(self.request.user, 'elearnuser') and self.request.user.elearnuser.user_type == 'student':
-            serializer.save(student=self.request.user.elearnuser)
-        else:
-            raise PermissionDenied("Only students can edit their feedback.")
-
-    def perform_destroy(self, instance):
-        # Ensures that only the owner (and only if they are a student) can delete feedback
-        if hasattr(self.request.user, 'elearnuser') and self.request.user.elearnuser.user_type == 'student':
-            instance.delete()
-        else:
-            raise PermissionDenied("Only students can delete their feedback.")
+            raise PermissionDenied("Only students can submit feedback.")
 
 
 class StatusUpdateViewSet(viewsets.ModelViewSet):

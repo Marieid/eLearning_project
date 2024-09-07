@@ -69,22 +69,6 @@ class APITestCase(TestCase):
         # Should be forbidden for non-admin
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_get_user_list_authorized(self):
-        # Make the teacher user a superuser (admin)
-        self.teacher_user.is_superuser = True
-        self.teacher_user.is_staff = True
-        self.teacher_user.save()
-
-        # Authenticate as the admin user
-        self.client.credentials(
-            HTTP_AUTHORIZATION=f'Bearer {self.teacher_access_token}')
-
-        # Test authorized access to user list
-        url = reverse('user-list')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsInstance(response.data, list)
-
     def test_get_elearnuser_list(self):
         # Authenticate as a student
         self.client.credentials(
@@ -125,16 +109,16 @@ class APITestCase(TestCase):
         self.client.login(username='teacher', password='password')
         url = reverse('course-list')
         data = {
-            # Generating a unique code using uuid
-            'code': 'CS105',
+            'code': str(uuid.uuid4()),
             'name': 'Introduction to Computer Science',
-            'teacher': self.teacher.pk,
+            'teacher': self.teacher.id,
             'start_date': date.today().strftime('%Y-%m-%d'),
             'end_date': (date.today() + timedelta(days=365)).strftime('%Y-%m-%d'),
             'enrollment_status': 'open'
         }
         response = self.client.post(url, data, format='json')
-
+        print("test_create_course_authorized: ")
+        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_course_unauthorized(self):
@@ -142,21 +126,26 @@ class APITestCase(TestCase):
         self.client.credentials(
             HTTP_AUTHORIZATION=f'Bearer {self.student_access_token}')
         data = {
-            'title': 'CS105',
-            'description': 'Introduction to Computer Science',
-            'teacher': self.teacher.pk
+            'code': 'CS105',
+            'name': 'Introduction to Computer Science',
+            'student': self.teacher.pk,
+            'start_date': date.today().strftime('%Y-%m-%d'),
+            'end_date': (date.today() + timedelta(days=365)).strftime('%Y-%m-%d'),
+            'enrollment_status': 'open'
         }
 
         # Test course creation
         url = reverse('course-list')
         response = self.client.post(url, data, format='json')
-
+        print("test_create_course_unauthorized: ")
+        print(response.data)
         # Should be forbidden for students
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_update_course_authorized(self):
         # Authenticate as a teacher user
-        self.client.login(username='teacher', password='password')
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.teacher_access_token}')
         url = reverse('course-detail', kwargs={'pk': 1})
 
         data = {
@@ -196,7 +185,7 @@ class APITestCase(TestCase):
         data = {
             'name': 'Lecture Notes',
             'description': 'Description for lecture notes',
-            'course': self.course.id,
+            'course': self.course.pk,
             'file': dummy_file,
             'uploader': self.teacher.pk,
         }
@@ -221,14 +210,15 @@ class APITestCase(TestCase):
         # Define enrollment data
         data = {
             'student': self.student.pk,
-            # 'course': self.course.pk,
-            'course': self.course.id,
+            'course': self.course.pk,
         }
 
         # Test enrollment
         url = reverse('enrollment-list')
         response = self.client.post(url, data, format='json')
-        print("test_enrollment_authorized")
+        print("test_enrollment_authorized: ")
+        print(self.course.pk)
+        print("  ")
         print(response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data['course'], self.course.pk)
@@ -242,7 +232,7 @@ class APITestCase(TestCase):
         data = {
             # Trying to enroll the teacher
             'student': self.teacher.pk,
-            'course': self.course.id,
+            'course': self.course.pk,
         }
 
         # Test unauthorized enrollment
@@ -256,10 +246,10 @@ class APITestCase(TestCase):
             HTTP_AUTHORIZATION=f'Bearer {self.student_access_token}')
 
         data = {
-            'course': self.course.id,
-            'feedback': 'Great course!',
+            'course': self.course.pk,
             'student': self.student.pk,
             'rating': 5,
+            'comment': 'Great course!'
         }
 
         # Test feedback submission
@@ -275,9 +265,26 @@ class APITestCase(TestCase):
     def test_submit_feedback_unauthorized(self):
         url = reverse('feedback-list')
         data = {
-            "course": self.course.id,
+            "course": self.course.pk,
             "rating": 5,
             "comment": "Great course!"
         }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_user_list_authorized(self):
+        # Make the teacher user a superuser (admin)
+        self.teacher_user.is_superuser = True
+        self.teacher_user.is_staff = True
+        self.teacher_user.save()
+
+        # Authenticate as the admin user
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f'Bearer {self.teacher_access_token}')
+
+        # Test authorized access to user list
+        url = reverse('user-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Access the list of users within 'results'
+        self.assertIsInstance(response.data['results'], list)
