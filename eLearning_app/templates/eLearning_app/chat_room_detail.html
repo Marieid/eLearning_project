@@ -6,9 +6,14 @@
 
   <!-- Chat Log Section -->
   <div id="chat-log" class="border rounded p-3 mb-4" style="height: 300px; overflow-y: scroll;">
-    <!-- Chat messages are dynamically added here -->
     {% for message in messages %}
-    <p><strong>{{ message.user.username }}:</strong> {{ message.content }}</p>
+      <p>
+        <strong>{{ message.user.username }}:</strong> {{ message.content }} 
+        <small class="text-muted">{{ message.timestamp }}</small>
+        {% if request.user == message.user %}
+          <a href="{% url 'delete_message' message.id %}" class="btn btn-danger btn-sm ms-2">Delete Message</a>
+        {% endif %}
+      </p>
     {% endfor %}
   </div>
 
@@ -30,7 +35,8 @@
   document.addEventListener('DOMContentLoaded', function() {
     var roomName = "{{ room_name }}";
     var chatLog = document.querySelector("#chat-log");
-    var chatSocket = new WebSocket("ws://" + window.location.host + "/ws/chat/" + roomName + "/");
+    var protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+    var chatSocket = new WebSocket(protocol + window.location.host + "/ws/chat/" + roomName + "/");
 
     // Handle connection events
     chatSocket.onopen = function() {
@@ -41,10 +47,11 @@
       var data = JSON.parse(e.data);
       var message = data.message;
       var username = data.username;
+      var timestamp = data.timestamp;
 
       // Append the new message to the chat log
       var newMessage = document.createElement('p');
-      newMessage.innerHTML = "<strong>" + username + ":</strong> " + message;
+      newMessage.innerHTML = "<strong>" + username + ":</strong> " + message + " <small class='text-muted'>" + timestamp + "</small>";
       chatLog.appendChild(newMessage);
 
       // Auto-scroll to the latest message
@@ -58,6 +65,7 @@
     chatSocket.onclose = function(e) {
       console.log('WebSocket connection closed: ', e);
     };
+
     // Handle sending a new message
     document.querySelector("#chat-message-form").onsubmit = function(e) {
       e.preventDefault();
@@ -65,10 +73,13 @@
       var message = messageInputDom.value.trim();
 
       if (message.length > 0) {
+        var timestamp = new Date().toLocaleTimeString(); // Add timestamp
         chatSocket.send(JSON.stringify({
-          'message': message
+          'message': message,
+          'username': "{{ request.user.username }}",
+          'timestamp': timestamp
         }));
-        // Clears the message input field
+
         messageInputDom.value = ""; 
       }
     };

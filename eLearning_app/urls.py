@@ -2,6 +2,7 @@ from django.urls import path, include
 from django.contrib.auth.views import LogoutView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from . import views
+from .views import delete_message
 
 
 urlpatterns = [
@@ -44,6 +45,8 @@ urlpatterns = [
     path('chatroom/<int:pk>/edit/', views.edit_chatroom, name='edit_chatroom'),
     path('chatroom/<int:pk>/delete/',
          views.delete_chatroom, name='delete_chatroom'),
+    path('delete_message/<int:message_id>/',
+         delete_message, name='delete_message'),
     path('notification/<int:notification_id>/mark_as_read/',
          views.mark_notification_as_read, name='mark_notification_as_read'),
     path('search/', views.search_users, name='search_users'),

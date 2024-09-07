@@ -108,9 +108,18 @@ class ChatRoom(models.Model):
     chat_name = models.CharField(max_length=256, unique=True)
     admin = models.ForeignKey(User, on_delete=models.CASCADE)
     members = models.ManyToManyField(User, related_name='chat_rooms')
+    moderators = models.ManyToManyField(
+        elearnUser, blank=True, related_name='moderated_chat_rooms', limit_choices_to=Q(user_type='teacher'))
 
     def __str__(self):
         return self.chat_name
+
+    def ban_member(self, user, member_to_ban):
+        """ Allow the admin or moderators to ban a member from the chat room """
+        if self.admin == user or user in self.moderators.all():
+            self.members.remove(member_to_ban)
+            return True
+        return False
 
 
 class Message(models.Model):
@@ -121,6 +130,13 @@ class Message(models.Model):
 
     def __str__(self):
         return f'{self.user.username}: {self.content[:20]}'
+
+    def delete_message(self, user):
+        """ Only allows messages to be deleted by the admin, moderator, or message author """
+        if self.chat_room.admin == user or user in self.chat_room.moderators.all() or self.user == user:
+            self.delete()
+            return True
+        return False
 
 
 @receiver(post_save, sender=Enrollment)

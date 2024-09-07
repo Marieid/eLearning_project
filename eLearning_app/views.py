@@ -1,11 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
-from django.shortcuts import render, get_object_or_404
 from .models import User, elearnUser, Course, Enrollment, Material, StatusUpdate, ChatRoom, Message, EnrollmentNotification, MaterialNotification, BlockNotification
 from .forms import StudentRegistrationForm, TeacherRegistrationForm, CourseCreationForm, UserProfileUpdateForm, MaterialForm, FeedbackForm, StatusUpdateForm, ChatRoomForm
-from django.contrib.auth.decorators import permission_required
 from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
@@ -453,12 +451,12 @@ def delete_chatroom(request, pk):
     if request.user != chatroom.admin:
         messages.error(
             request, "You are not authorized to delete this chat room.")
-        return redirect('chat_rooms')
+        return redirect('chat_room_detail')
 
     if request.method == 'POST':
         chatroom.delete()
         messages.success(request, "Chat room deleted successfully.")
-        return redirect('chat_rooms')
+        return redirect('chat_room_detail')
 
     return render(request, 'eLearning_app/delete_chatroom.html', {'chatroom': chatroom})
 
@@ -484,6 +482,17 @@ def chat_rooms(request):
         'chat_rooms': chat_rooms,
         'form': form
     })
+
+
+@login_required
+def delete_message(request, message_id):
+    message = get_object_or_404(Message, id=message_id)
+    # Assuming you have a relationship from Message to ChatRoom
+    chat_room = message.chat_room
+
+    if request.method == 'GET' and (request.user == message.user or request.user in chat_room.moderators.all()):
+        message.delete()
+    return redirect('chat_room_detail', room_name=chat_room.chat_name)
 
 
 @login_required
